@@ -1,7 +1,7 @@
 name: skalatek_kyc
-description: "A new Flutter package project."
+description: "A Flutter SDK for integrating Skaletek's Know Your Customer (KYC) verification services."
 version: 0.0.1
-homepage:
+homepage: https://github.com/skaletek-io/skalatek_kyc
 
 environment:
   sdk: ^3.8.1
@@ -23,9 +23,8 @@ dev_dependencies:
 flutter:
 
   # To add assets to your package, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/
   #
   # For details regarding assets in packages, see
   # https://flutter.dev/to/asset-from-package
