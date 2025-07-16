@@ -1,14 +1,14 @@
 import 'package:face_liveness_detector/face_liveness_detector.dart';
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/src/config/app_config.dart';
-import 'package:skaletek_kyc_flutter/src/models/kyc_api_models.dart';
-import 'package:skaletek_kyc_flutter/src/models/kyc_user_info.dart';
-import 'package:skaletek_kyc_flutter/src/services/kyc_service.dart';
-import 'package:skaletek_kyc_flutter/src/ui/layout/content.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/button.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/spinner.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/kyc_progress.dart';
-import 'package:skaletek_kyc_flutter/src/models/kyc_result.dart';
+import 'package:skaletek_kyc/src/config/app_config.dart';
+import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
+import 'package:skaletek_kyc/src/models/kyc_user_info.dart';
+import 'package:skaletek_kyc/src/services/kyc_service.dart';
+import 'package:skaletek_kyc/src/ui/layout/content.dart';
+import 'package:skaletek_kyc/src/ui/shared/button.dart';
+import 'package:skaletek_kyc/src/ui/shared/spinner.dart';
+import 'package:skaletek_kyc/src/ui/shared/kyc_progress.dart';
+import 'package:skaletek_kyc/src/models/kyc_result.dart';
 
 class KYCFaceVerification extends StatefulWidget {
   const KYCFaceVerification({

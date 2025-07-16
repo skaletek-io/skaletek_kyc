@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:skaletek_kyc/models/kyc_config.dart';
-import 'package:skaletek_kyc/models/kyc_result.dart';
-import 'package:skaletek_kyc/models/kyc_api_models.dart';
-import 'package:skaletek_kyc/config/app_config.dart';
+import 'package:skaletek_kyc/src/models/kyc_config.dart';
+import 'package:skaletek_kyc/src/models/kyc_result.dart';
+import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
+import 'package:skaletek_kyc/src/config/app_config.dart';
 import 'kyc_state_provider.dart';
 import 'error_handler_service.dart';
 import 'dart:developer' as developer;

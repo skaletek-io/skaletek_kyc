@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/src/models/kyc_api_models.dart';
+import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
 
 class DetectionChecksList extends StatelessWidget {
   final DetectionChecks detectionChecks;

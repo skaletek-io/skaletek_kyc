@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:skaletek_kyc_flutter/src/services/kyc_service.dart';
-import 'package:skaletek_kyc_flutter/src/utils/image_cropper.dart';
+import 'package:skaletek_kyc/src/services/kyc_service.dart';
+import 'package:skaletek_kyc/src/utils/image_cropper.dart';
 import 'app_color.dart';
 import 'dart:developer' as developer;
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/app_color.dart';
+import 'package:skaletek_kyc/src/ui/shared/app_color.dart';
 
 class KYCSpinner extends StatelessWidget {
   final double size;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/typography.dart';
+import 'package:skaletek_kyc/src/ui/shared/typography.dart';
 
 class KYCFooter extends StatelessWidget {
   const KYCFooter({super.key});

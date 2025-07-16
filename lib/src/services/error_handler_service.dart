@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:skaletek_kyc/models/kyc_api_models.dart' show SessionError;
+import 'package:skaletek_kyc/src/models/kyc_api_models.dart' show SessionError;
 
 /// Error types for better categorization
 enum ErrorType { network, upload, session, validation, server, unknown }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/src/ui/core/camera_captuer/camera_service.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/typography.dart';
+import 'package:skaletek_kyc/src/ui/core/camera_captuer/camera_service.dart';
+import 'package:skaletek_kyc/src/ui/shared/typography.dart';
 
 class FeedbackBox extends StatelessWidget {
   final FeedbackState feedbackState;

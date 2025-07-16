@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:skaletek_kyc/services/kyc_state_provider.dart';
-import 'package:skaletek_kyc/ui/shared/app_color.dart';
-import 'package:skaletek_kyc/ui/shared/button.dart';
-import 'package:skaletek_kyc/ui/shared/typography.dart';
+import 'package:skaletek_kyc/src/services/kyc_state_provider.dart';
+import 'package:skaletek_kyc/src/ui/shared/app_color.dart';
+import 'package:skaletek_kyc/src/ui/shared/button.dart';
+import 'package:skaletek_kyc/src/ui/shared/typography.dart';
 
 class KYCDocumentDemo extends StatelessWidget {
   final VoidCallback? onContinue;

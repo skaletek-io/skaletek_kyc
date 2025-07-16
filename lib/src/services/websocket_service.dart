@@ -1,4 +1,5 @@
-/*
+/// WebSocketService
+///
 /// Handles WebSocket connection management for the KYC ML backend.
 /// Provides robust connection handling with automatic reconnection,
 /// status tracking, and message streaming capabilities.
@@ -6,7 +7,6 @@
 /// This service manages the WebSocket lifecycle independently from the
 /// camera service, allowing for better separation of concerns and
 /// improved testability and maintainability.
-/// */
 
 import 'dart:async';
 import 'dart:convert';
@@ -16,7 +16,7 @@ import 'dart:developer' as developer;
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 
-import 'package:skaletek_kyc/config/app_config.dart';
+import '../config/app_config.dart';
 
 /// WebSocket connection status
 enum WebSocketStatus { disconnected, connecting, connected, error }

@@ -1,4 +1,4 @@
-/// Camera Service for Real-Time Document Detection
+/*
 ///
 /// A comprehensive service that handles real-time document detection and capture
 /// for KYC (Know Your Customer) verification processes. Integrates with WebSocket-based
@@ -76,7 +76,8 @@
 ///
 /// service.connect();
 /// ```
-///
+/// */
+
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:developer' as developer;
@@ -85,9 +86,9 @@ import 'dart:ui' as ui;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
-import '../../package:skaletek_kyc/models/kyc_api_models.dart';
-import '../../../utils/image_cropper.dart';
-import '../../package:skaletek_kyc/services/websocket_service.dart';
+import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
+import 'package:skaletek_kyc/src/utils/image_cropper.dart';
+import 'package:skaletek_kyc/src/services/websocket_service.dart';
 
 // =============================================================================
 // DETECTION TIMING CONSTANTS

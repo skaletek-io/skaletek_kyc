@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/app_color.dart';
-import 'package:skaletek_kyc/shared/logo.dart';
-import 'package:skaletek_kyc/shared/alert.dart';
+import 'package:skaletek_kyc/src/ui/shared/app_color.dart';
+import 'package:skaletek_kyc/src/ui/shared/logo.dart';
+import 'package:skaletek_kyc/src/ui/shared/alert.dart';
 
 class KYCHeader extends StatelessWidget implements PreferredSizeWidget {
   final String? logoUrl;

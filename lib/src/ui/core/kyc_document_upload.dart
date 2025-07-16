@@ -25,18 +25,17 @@
 /// ```
 */
 import 'dart:io';
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/skaletek_kyc_flutter.dart';
-import 'package:skaletek_kyc_flutter/src/models/kyc_api_models.dart';
-import 'package:skaletek_kyc_flutter/src/services/kyc_service.dart';
-import 'package:skaletek_kyc_flutter/src/services/error_handler_service.dart';
-import 'package:skaletek_kyc_flutter/src/services/websocket_service.dart';
-import 'package:skaletek_kyc_flutter/src/ui/core/camera_captuer/kyc_camera_capture.dart';
-import 'package:skaletek_kyc_flutter/src/ui/layout/content.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/button.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/file_input.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/typography.dart';
+import 'package:skaletek_kyc/skaletek_kyc.dart';
+import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
+import 'package:skaletek_kyc/src/services/kyc_service.dart';
+import 'package:skaletek_kyc/src/services/error_handler_service.dart';
+import 'package:skaletek_kyc/src/services/websocket_service.dart';
+import 'package:skaletek_kyc/src/ui/core/camera_captuer/kyc_camera_capture.dart';
+import 'package:skaletek_kyc/src/ui/layout/content.dart';
+import 'package:skaletek_kyc/src/ui/shared/button.dart';
+import 'package:skaletek_kyc/src/ui/shared/file_input.dart';
+import 'package:skaletek_kyc/src/ui/shared/typography.dart';
 import 'dart:developer' as developer;
 
 /// Document types that require both front and back sides for verification

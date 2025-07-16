@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:skaletek_kyc/models/kyc_api_models.dart';
+import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
 import 'dart:convert';
 
 class KYCStateProvider extends ChangeNotifier {

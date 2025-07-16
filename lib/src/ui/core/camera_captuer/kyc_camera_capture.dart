@@ -1,5 +1,4 @@
-/// KYC Camera Capture Widget
-///
+/*
 /// A specialized camera interface for Know Your Customer (KYC) document verification.
 /// This widget provides real-time document detection, positioning feedback, and automatic
 /// capture capabilities using machine learning backend services.
@@ -42,16 +41,17 @@
 /// 2. Real-time detection uses cropped regions for faster processing
 /// 3. Final capture converts to PNG and crops to exact target rectangle
 /// 4. Coordinate transformation accounts for camera orientation and scaling
+/// */
 ///
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/src/models/kyc_api_models.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/app_color.dart';
+import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
+import 'package:skaletek_kyc/src/ui/shared/app_color.dart';
 import 'dart:developer' as developer;
 import 'detection_checks_list.dart';
 import 'feedback_box.dart';
 import 'camera_service.dart';
-import '../../package:skaletek_kyc/services/websocket_service.dart';
+import 'package:skaletek_kyc/src/services/websocket_service.dart';
 
 /// KYC Camera Capture Widget
 ///
@@ -245,7 +245,6 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
       if (!mounted || !_isActive) return;
 
       // Show snackbar for testing purposes
-      _showFeedbackSnackbar(feedback);
 
       // Throttle UI updates to prevent excessive rebuilds
       final now = DateTime.now();
@@ -287,71 +286,6 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
   /// - Positioned above capture button for optimal UX
   /// - Color-coded background based on feedback type
   /// - Automatic clearing of previous snackbars
-  /// TODO: remove this function before publishing
-  void _showFeedbackSnackbar(DetectionFeedback feedback) {
-    return;
-    // Throttle snackbar to prevent spam
-    final now = DateTime.now();
-    if (_lastSnackbarTime != null &&
-        now.difference(_lastSnackbarTime!).inMilliseconds <
-            _minSnackbarInterval.inMilliseconds) {
-      return;
-    }
-    _lastSnackbarTime = now;
-
-    // Extract bbox information from feedback
-    String bboxInfo = 'No bbox data';
-
-    // Check if feedback has bbox information
-    // This assumes your DetectionFeedback model has bbox data
-    // You may need to adjust this based on your actual model structure
-    if (feedback.bbox != null) {
-      final bbox = feedback.bbox;
-      bboxInfo =
-          'BBox: (${bbox!.left.toStringAsFixed(1)}, ${bbox.top.toStringAsFixed(1)}, ${bbox.right.toStringAsFixed(1)}, ${bbox.bottom.toStringAsFixed(1)})';
-    } else {
-      bboxInfo = 'BBox: null';
-    }
-
-    // Create snackbar content
-    final snackbarContent = '${feedback.message}\n$bboxInfo';
-
-    // Determine snackbar color based on feedback state
-    Color backgroundColor;
-    if (feedback.connecting) {
-      backgroundColor = Colors.blue;
-    } else if (feedback.message.contains('error') ||
-        feedback.message.contains('Error')) {
-      backgroundColor = Colors.red;
-    } else {
-      backgroundColor = Colors.orange;
-    }
-
-    // Clear any existing snackbars
-    ScaffoldMessenger.of(context).clearSnackBars();
-
-    // Show new snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          snackbarContent,
-          style: TextStyle(color: Colors.white, fontSize: 12),
-        ),
-        backgroundColor: backgroundColor,
-        duration: Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(
-          bottom: 120, // Position above capture button
-          left: 16,
-          right: 16,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-
-    // Log for debugging
-    developer.log('Feedback: ${feedback.message}, BBox: $bboxInfo');
-  }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

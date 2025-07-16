@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/src/ui/layout/footer.dart';
+import 'package:skaletek_kyc/src/ui/layout/footer.dart';
 
 class KYCBody extends StatelessWidget {
   const KYCBody({super.key, this.child});

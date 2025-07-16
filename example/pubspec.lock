@@ -277,10 +277,10 @@ packages:
     dependency: transitive
     description:
       name: face_liveness_detector
-      sha256: ff4956853c4b1882631499fab79917930ac1143ceed09ddbd460d3584f5448ea
+      sha256: b4ba657638aad34e4bc2a1ba849bb5d1bf7236068b3464b3c160b6795a678a77
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.7"
+    version: "0.2.8"
   fake_async:
     dependency: transitive
     description:

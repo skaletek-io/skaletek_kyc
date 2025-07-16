@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:skaletek_kyc_flutter/src/models/kyc_api_models.dart';
-import 'package:skaletek_kyc_flutter/src/models/kyc_user_info.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/app_color.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/typography.dart';
+import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
+import 'package:skaletek_kyc/src/models/kyc_user_info.dart';
+import 'package:skaletek_kyc/src/ui/shared/app_color.dart';
+import 'package:skaletek_kyc/src/ui/shared/typography.dart';
 
 class KYCContent extends StatelessWidget {
   final Widget? child;

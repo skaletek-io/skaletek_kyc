@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:skaletek_kyc_flutter/src/ui/shared/app_color.dart';
+import 'package:skaletek_kyc/src/ui/shared/app_color.dart';
 
 class StyledText extends StatelessWidget {
   const StyledText(

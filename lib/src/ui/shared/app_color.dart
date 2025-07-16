@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../package:skaletek_kyc/models/kyc_customization.dart';
+import 'package:skaletek_kyc/src/models/kyc_customization.dart';
 
 class AppColor {
   static Color primary = const Color(0xFF126DD6);

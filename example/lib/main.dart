@@ -5,17 +5,19 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'My Demo App', home: const DemoApp());
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
+      home: const DemoApp(),
+    );
   }
 }
 
@@ -38,21 +40,22 @@ class _DemoAppState extends State<DemoApp> {
     });
 
     final userInfo = KYCUserInfo(
-      firstName: "Whyte",
-      lastName: "Peter",
+      firstName: "David",
+      lastName: "Omale",
       documentType: DocumentType.passport.value,
       issuingCountry: "USA",
     );
     final customization = KYCCustomization(
       docSrc: DocumentSource.file.value,
       logoUrl: null,
-      partnerName: "Skaletek",
+      partnerName: "YouTube",
       primaryColor: null,
     );
 
     SkaletekKYC.instance.startVerification(
       context: context,
       token: "039cfd771d204bafb1ea47da0cc06164",
+      // token: "a1f2bbdde4974ad9808f9a748c09ed3d",
       userInfo: userInfo,
       customization: customization,
       onComplete: (result) {
