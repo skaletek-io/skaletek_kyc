@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:skalatek_kyc/skalatek_kyc.dart';
+import 'package:skaletek_kyc/skaletek_kyc.dart';
 
 void main() {
   test('adds one to input values', () {
