@@ -1,14 +1,7 @@
 # Skaletek KYC Flutter Plugin
 
-A Flutter plugin for integrating Skaletek's Know Your Customer (KYC) verification services with **automatic AWS Amplify configuration**. No manual native setup required!
+A Flutter plugin for integrating Skaletek's Know Your Customer (KYC) verification services
 
-## ✨ Features
-
-- 🚀 **Zero Native Configuration** - AWS Amplify configured automatically
-- 📱 **Cross-Platform** - iOS and Android support
-- 🔐 **Secure** - Built-in AWS Cognito authentication
-- 🎨 **Customizable** - Flexible UI customization options
-- 📸 **Advanced Verification** - Document scanning and face liveness detection
 
 ## 🚀 Quick Start
 
@@ -19,23 +12,161 @@ dependencies:
   skaletek_kyc: ^0.0.1
 ```
 
-### 2. Initialize in main()
+### 2. Android Setup
+
+For Android face liveness detection, several configurations are required:
+
+#### 2.1. Update `android/build.gradle` (Project Level)
+
+```gradle
+buildscript {
+    extra.apply {
+        set("kotlin_version", "2.0.0")
+        set("compose_version", "1.6.7")
+        set("compose_compiler_version", "1.5.14")
+    }
+    
+    repositories {
+        google()
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.3.2")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
+        classpath("org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.0.0")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    }
+}
+
+// Apply Compose plugin only to the face_liveness_detector project
+subprojects {
+    afterEvaluate {
+        if (project.name == "app" || project.name == "face_liveness_detector") {
+            apply(plugin = "org.jetbrains.kotlin.plugin.compose")
+        }
+    }
+}
+```
+
+#### 2.2. Update `android/app/build.gradle` (App Level)
+
+```gradle
+android {
+    compileSdk = 35
+    ndkVersion = "27.0"
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
+
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
+
+    defaultConfig {
+        minSdk = 24
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    
+    // Add these Compose dependencies
+    implementation("androidx.compose.ui:ui:1.6.7")
+    implementation("androidx.compose.material:material:1.6.7")
+    implementation("androidx.compose.runtime:runtime:1.6.7")
+    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
+    // AWS Amplify Face Liveness SDK
+    implementation("com.amplifyframework.ui:liveness:1.4.0")
+    implementation("com.amplifyframework:core:2.27.0")
+    implementation("com.amplifyframework:aws-auth-cognito:2.27.0")
+}
+
+// Auto-copy amplifyconfiguration.json for face liveness detection
+tasks.register("copyAmplifyConfig") {
+    doLast {
+        val sourceFile = file("../../../assets/amplifyconfiguration.json")
+        val targetDir = file("src/main/res/raw")
+        
+        if (sourceFile.exists()) {
+            targetDir.mkdirs()
+            sourceFile.copyTo(file("${targetDir.path}/amplifyconfiguration.json"), overwrite = true)
+            println("✅ amplifyconfiguration.json for face liveness setup")
+        } else {
+            println("⚠️ amplifyconfiguration.json not found at ${sourceFile.path}")
+        }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn("copyAmplifyConfig")
+}
+```
+
+#### 2.3. Add Camera Permission to `android/app/src/main/AndroidManifest.xml`
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    
+    <application
+        android:label="your_app"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <!-- ... rest of your manifest -->
+    </application>
+</manifest>
+```
+
+#### 2.4. Update MainActivity
+
+Ensure your `MainActivity` extends `FlutterFragmentActivity`:
+
+```kotlin
+// android/app/src/main/kotlin/com/yourpackage/yourapp/MainActivity.kt
+package com.yourpackage.yourapp
+
+import io.flutter.embedding.android.FlutterFragmentActivity
+
+class MainActivity : FlutterFragmentActivity()
+```
+
+**What this setup does:**
+- ✅ Configures Kotlin and Compose for face liveness UI
+- ✅ Adds required AWS Amplify dependencies
+- ✅ Automatically copies `amplifyconfiguration.json` to correct location
+- ✅ Enables camera permissions for face verification
+- ✅ Uses FlutterFragmentActivity for better native integration
+
+### 3. Initialize in main()
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:skaletek_kyc/skaletek_kyc.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // REQUIRED: Initialize Skaletek KYC SDK
-  await SkaletekKYC.initialize();
+void main()  {
   
   runApp(MyApp());
 }
 ```
 
-### 3. Start Verification
+### 4. Start Verification
 
 ```dart
 import 'package:skaletek_kyc/skaletek_kyc.dart';
@@ -110,73 +241,15 @@ final customization = KYCCustomization(
 
 ### Document Types
 - `DocumentType.passport`
-- `DocumentType.drivingLicense` 
 - `DocumentType.nationalId`
+- `DocumentType.residencePermit`
+- `DocumentType.healthCard`
+- `DocumentType.driverLicense`
 
 ### Document Sources
 - `DocumentSource.camera` - Live camera capture
 - `DocumentSource.file` - File upload from gallery
 
-## 📋 SDK Status Checking
-
-```dart
-// Check if SDK is initialized
-bool isInitialized = SkaletekKYC.isInitialized;
-
-// Get detailed SDK information
-Map<String, dynamic> info = await SkaletekKYC.instance.sdkInfo;
-print('Platform: ${info['platform_version']}');
-print('AWS Amplify: ${info['amplify_configured']}');
-print('SDK Initialized: ${info['sdk_initialized']}');
-```
-
-## 🎯 What Happens Automatically
-
-When you call `SkaletekKYC.initialize()`, the plugin automatically:
-
-1. **iOS**: Loads AWS configuration from bundled assets and configures Amplify
-2. **Android**: Copies configuration files to raw resources and initializes Amplify
-3. **Sets up**: AWS Cognito authentication for face liveness detection
-4. **Prepares**: All necessary services for KYC verification
-
-## 🛠️ No Manual Configuration Required
-
-Unlike other AWS-based plugins, **you don't need to**:
-- ❌ Manually add AWS configuration files to iOS/Android projects
-- ❌ Open Xcode to add files to the Runner target
-- ❌ Modify native build scripts
-- ❌ Configure AWS Amplify in AppDelegate or MainActivity
-- ❌ Set up AWS dependencies manually
-
-Everything is handled automatically by the plugin!
-
-## 📱 Platform Support
-
-- **iOS**: 14.0+
-- **Android**: API Level 24+
-- **Flutter**: 2.5.0+
-
-## 🔐 Security
-
-This plugin uses AWS Amplify with Cognito for secure authentication and communication. All AWS configurations are bundled securely with the plugin.
-
-## 🐛 Troubleshooting
-
-### Initialization Failed
-```dart
-bool success = await SkaletekKYC.initialize();
-if (!success) {
-  print('SDK initialization failed. Check logs for details.');
-}
-```
-
-### Check SDK Status
-```dart
-final info = await SkaletekKYC.instance.sdkInfo;
-if (info['amplify_configured'] != true) {
-  print('AWS Amplify not configured properly');
-}
-```
 
 ## 📄 License
 

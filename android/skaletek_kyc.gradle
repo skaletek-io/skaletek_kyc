@@ -1,0 +1,75 @@
+// Skaletek KYC Plugin Setup
+// This script automatically copies amplifyconfiguration.json to the Android raw resources
+
+task copyAmplifyConfigFromPlugin {
+    doLast {
+        // Multiple strategies to find the amplifyconfiguration.json file
+        def sourceFile = null
+        def attempts = [
+            // Strategy 1: Look in .pub-cache for published plugin
+            "${System.getProperty('user.home')}/.pub-cache/hosted/pub.dev/skaletek_kyc-*/assets/amplifyconfiguration.json",
+            // Strategy 2: Local development (plugin in parent directory)
+            "${project.rootDir}/../assets/amplifyconfiguration.json",
+            // Strategy 3: Local development (plugin as dependency)
+            "${project.rootDir}/../../assets/amplifyconfiguration.json",
+            // Strategy 4: Check if user has placed it manually in assets
+            "${project.rootDir}/assets/amplifyconfiguration.json"
+        ]
+        
+        for (String path : attempts) {
+            def candidate = file(path)
+            if (candidate.exists()) {
+                sourceFile = candidate
+                println "📍 Found amplifyconfiguration.json at: ${path}"
+                break
+            }
+        }
+        
+        if (!sourceFile) {
+            // Try to find using glob pattern for .pub-cache
+            def pubCacheDir = file("${System.getProperty('user.home')}/.pub-cache/hosted/pub.dev")
+            if (pubCacheDir.exists()) {
+                pubCacheDir.listFiles().each { dir ->
+                    if (dir.name.startsWith('skaletek_kyc-')) {
+                        def configFile = file("${dir.absolutePath}/assets/amplifyconfiguration.json")
+                        if (configFile.exists()) {
+                            sourceFile = configFile
+                            println "📍 Found amplifyconfiguration.json in pub cache: ${configFile.absolutePath}"
+                            return true // break from closure
+                        }
+                    }
+                }
+            }
+        }
+        
+        def targetDir = file("app/src/main/res/raw")
+        def targetFile = file("${targetDir.absolutePath}/amplifyconfiguration.json")
+        
+        if (sourceFile && sourceFile.exists()) {
+            targetDir.mkdirs()
+            copy {
+                from sourceFile
+                into targetDir
+            }
+            println "✅ Successfully copied amplifyconfiguration.json to ${targetFile.absolutePath}"
+            println "   Face Liveness Detector will now work properly on Android!"
+        } else {
+            println ""
+            println "❌ Could not find amplifyconfiguration.json"
+            println "   Please ensure:"
+            println "   1. The skaletek_kyc plugin is properly installed"
+            println "   2. The plugin assets contain amplifyconfiguration.json"
+            println "   3. Or manually place the file in your app's assets folder"
+            println ""
+        }
+    }
+}
+
+// Automatically run before Android build
+afterEvaluate {
+    if (project.hasProperty('android')) {
+        android.applicationVariants.all { variant ->
+            variant.preBuild.dependsOn copyAmplifyConfigFromPlugin
+        }
+    }
+} 

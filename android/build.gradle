@@ -1,0 +1,109 @@
+group 'com.skaletek.skaletek_kyc'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    ext.kotlin_version = '1.7.10'
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 35
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        minSdkVersion 24
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+}
+
+// Task to copy amplifyconfiguration.json from plugin to consuming app
+task copyAmplifyConfig {
+    doLast {
+        // Find the plugin's assets directory
+        def pluginAssetsDir = null
+        def flutterRoot = System.getenv("FLUTTER_ROOT")
+        if (flutterRoot != null) {
+            def pubCacheDir = "${System.getProperty('user.home')}/.pub-cache"
+            def pluginDir = file("${pubCacheDir}/hosted/pub.dev/skaletek_kyc-*/assets")
+            if (!pluginDir.exists()) {
+                // Try local development path
+                pluginDir = file("${project.rootDir}/../assets")
+            }
+            if (!pluginDir.exists()) {
+                // Try relative to plugin
+                def pluginPath = project.configurations.runtimeClasspath.find { 
+                    it.path.contains('skaletek_kyc') 
+                }
+                if (pluginPath) {
+                    pluginDir = file("${pluginPath.parent}/../../assets")
+                }
+            }
+            if (pluginDir.exists()) {
+                pluginAssetsDir = pluginDir
+            }
+        }
+        
+        def sourceFile = null
+        if (pluginAssetsDir && pluginAssetsDir.exists()) {
+            sourceFile = file("${pluginAssetsDir}/amplifyconfiguration.json")
+        }
+        
+        if (!sourceFile || !sourceFile.exists()) {
+            // Fallback: try to find in current project structure
+            sourceFile = file("${project.rootDir}/assets/amplifyconfiguration.json")
+        }
+        
+        def targetDir = file("${project.rootDir}/app/src/main/res/raw")
+        
+        if (sourceFile && sourceFile.exists()) {
+            targetDir.mkdirs()
+            copy {
+                from sourceFile
+                into targetDir
+            }
+            println "✓ Copied amplifyconfiguration.json to ${targetDir.path}"
+        } else {
+            println "⚠ Warning: amplifyconfiguration.json not found. Please ensure the skaletek_kyc plugin includes this file."
+        }
+    }
+}
+
+// Hook into the Android build process
+project.afterEvaluate {
+    android.applicationVariants.all { variant ->
+        variant.preBuild.dependsOn copyAmplifyConfig
+    }
+} 
