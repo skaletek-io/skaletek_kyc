@@ -5,6 +5,7 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+
 android {
     namespace = "com.example.example"
     compileSdk = 35
@@ -51,7 +52,6 @@ android {
 flutter {
     source = "../.."
 }
-
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")

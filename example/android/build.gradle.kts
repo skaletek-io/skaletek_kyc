@@ -17,14 +17,13 @@ buildscript {
     }
 }
 
-
 allprojects {
     repositories {
         google()
         mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
-
 
 // Apply Compose plugin to specific projects that need it
 subprojects {

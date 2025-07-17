@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:skaletek_kyc/src/models/kyc_config.dart';
 import 'package:skaletek_kyc/src/models/kyc_result.dart';
 import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
@@ -37,6 +38,16 @@ class KYCService {
     }
   }
 
+  /// Request camera permission for KYC verification
+  Future<bool> requestPermission() async {
+    final status = await Permission.camera.status;
+    if (status.isGranted) {
+      return true;
+    }
+    final result = await Permission.camera.request();
+    return result.isGranted;
+  }
+
   /// Dispose the service to prevent memory leaks
   void dispose() {
     _onComplete = null;
@@ -61,6 +72,9 @@ class KYCService {
     if (_stateProvider != null) {
       await _stateProvider!.setSessionToken(config.token);
     }
+
+    // Request camera permission for face verification
+    await requestPermission();
 
     // Fetch presigned URLs in background
     if (_stateProvider != null) {

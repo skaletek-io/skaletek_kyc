@@ -8,13 +8,14 @@ import 'services/kyc_state_provider.dart';
 import 'ui/kyc_verification_screen.dart';
 import 'ui/shared/app_color.dart';
 
-/// Singleton for starting the KYC verification process using model objects.
 class SkaletekKYC {
   SkaletekKYC._internal();
   static final SkaletekKYC _instance = SkaletekKYC._internal();
   static SkaletekKYC get instance => _instance;
 
   /// Starts the KYC verification process using model objects.
+  ///
+  /// **IMPORTANT**: Make sure you called SkaletekKYC.initialize() in main() first!
   ///
   /// [context] - BuildContext from the calling widget
   /// [token] - Authentication token for the verification session
@@ -29,6 +30,8 @@ class SkaletekKYC {
     required Function(Map<String, dynamic> result) onComplete,
   }) async {
     try {
+      print('SkaletekKYC: Starting verification...');
+
       final config = KYCConfig(
         token: token,
         userInfo: userInfo,
@@ -61,6 +64,7 @@ class SkaletekKYC {
         onComplete(KYCResult.failure(status: KYCStatus.failure).toMap());
       }
     } catch (e) {
+      print('SkaletekKYC: Error during verification: $e');
       onComplete(KYCResult.failure(status: KYCStatus.failure).toMap());
     }
   }
