@@ -365,7 +365,7 @@ class FileInputState extends State<FileInput> {
     }
     return Center(
       child: Image.asset(
-        'assets/images/image.png',
+        'packages/skaletek_kyc/assets/images/image.png',
         width: 96,
         height: 96,
         fit: BoxFit.contain,
@@ -396,7 +396,7 @@ class FileInputState extends State<FileInput> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Image.asset(
-        'assets/images/scan.gif',
+        'packages/skaletek_kyc/assets/images/scan.gif',
         width: double.infinity,
         height: double.infinity,
         fit: BoxFit.cover,

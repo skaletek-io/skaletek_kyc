@@ -87,8 +87,8 @@ class KYCContent extends StatelessWidget {
           Spacer(),
           Image.asset(
             step == KYCStep.document
-                ? 'assets/images/fancy-arrow.png'
-                : 'assets/images/fancy-arrow-2.png',
+                ? 'packages/skaletek_kyc/assets/images/fancy-arrow.png'
+                : 'packages/skaletek_kyc/assets/images/fancy-arrow-2.png',
             width: 40,
           ),
         ],

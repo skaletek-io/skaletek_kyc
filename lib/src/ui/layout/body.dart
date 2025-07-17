@@ -15,7 +15,9 @@ class KYCBody extends StatelessWidget {
         height: double.infinity,
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/pattern.png'),
+            image: AssetImage(
+              'packages/skaletek_kyc/assets/images/pattern.png',
+            ),
             fit: BoxFit.cover,
           ),
         ),

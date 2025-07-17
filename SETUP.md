@@ -1,6 +1,6 @@
-# Complete Skaletek SDK Plugin Implementation Guide
+# Complete Skaletek SDK Plugin Implementation Guide - Fixed Version
 
-This guide shows how to create a Flutter plugin that automatically handles AWS Amplify configuration for face liveness detection, so end users don't need to manually configure iOS and Android projects.
+This guide shows how to create a Flutter plugin that automatically handles AWS Amplify configuration for face liveness detection, including automatic file copying to the user's app.
 
 ## Project Structure
 
@@ -12,7 +12,7 @@ skaletek_sdk/
 ├── ios/
 │   ├── Classes/
 │   │   └── SkaletekSdkPlugin.swift
-│   ├── Runner/
+│   ├── Assets/
 │   │   ├── amplifyconfiguration.json
 │   │   └── awsconfiguration.json
 │   └── skaletek_sdk.podspec
@@ -20,9 +20,12 @@ skaletek_sdk/
 │   ├── src/main/
 │   │   ├── kotlin/com/skaletek/skaletek_sdk/
 │   │   │   └── SkaletekSdkPlugin.kt
-│   │   └── res/raw/
+│   │   └── assets/
 │   │       └── amplifyconfiguration.json
 │   └── build.gradle
+├── assets/
+│   ├── amplifyconfiguration.json
+│   └── awsconfiguration.json
 ├── tool/
 │   └── bundle_resources.dart
 └── pubspec.yaml
@@ -44,6 +47,8 @@ dependencies:
     sdk: flutter
   face_liveness_detector: ^latest_version
   plugin_platform_interface: ^2.0.2
+  path_provider: ^2.0.0
+  path: ^1.8.0
 
 dev_dependencies:
   flutter_test:
@@ -58,41 +63,139 @@ flutter:
         pluginClass: SkaletekSdkPlugin
       ios:
         pluginClass: SkaletekSdkPlugin
+  assets:
+    - assets/amplifyconfiguration.json
+    - assets/awsconfiguration.json
 ```
 
 ## 2. Main Plugin API (lib/skaletek_sdk.dart)
 
 ```dart
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:face_liveness_detector/face_liveness_detector.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 /// Main SDK class that handles all KYC operations
 class SkaletekSDK {
   static const MethodChannel _channel = MethodChannel('skaletek_sdk');
+  static bool _isInitialized = false;
   
   /// Initialize the SDK with AWS credentials
-  /// This is optional - the SDK will use default embedded configuration
+  /// This automatically copies configuration files to the correct locations
   static Future<void> initialize({
     String? identityPoolId,
     String? userPoolId,
     String? appClientId,
     String? region,
   }) async {
+    if (_isInitialized) return;
+    
     try {
+      // First, ensure configuration files are in the right place
+      await _copyConfigurationFiles();
+      
+      // Then initialize the native plugins
       await _channel.invokeMethod('initializeKYC', {
         'identityPoolId': identityPoolId,
         'userPoolId': userPoolId,
         'appClientId': appClientId,
         'region': region,
       });
+      
+      _isInitialized = true;
     } on PlatformException catch (e) {
       throw SkaletekSDKException('Failed to initialize SDK: ${e.message}');
     }
   }
   
+  /// Copy configuration files to the user's app directories
+  static Future<void> _copyConfigurationFiles() async {
+    try {
+      if (Platform.isAndroid) {
+        await _copyAndroidConfigFiles();
+      } else if (Platform.isIOS) {
+        await _copyIOSConfigFiles();
+      }
+    } catch (e) {
+      print('Warning: Could not copy configuration files: $e');
+    }
+  }
+  
+  /// Copy configuration files for Android
+  static Future<void> _copyAndroidConfigFiles() async {
+    try {
+      // Load the configuration from plugin assets
+      final ByteData amplifyConfigData = await rootBundle.load('packages/skaletek_sdk/assets/amplifyconfiguration.json');
+      final String amplifyConfig = String.fromCharCodes(amplifyConfigData.buffer.asUint8List());
+      
+      // Get the app's document directory
+      final Directory appDocDir = await getApplicationDocumentsDirectory();
+      final String appPath = appDocDir.path;
+      
+      // Navigate to the Android raw resources directory
+      final String androidRawPath = path.join(appPath, '..', '..', '..', 'android', 'app', 'src', 'main', 'res', 'raw');
+      final Directory androidRawDir = Directory(androidRawPath);
+      
+      if (!await androidRawDir.exists()) {
+        await androidRawDir.create(recursive: true);
+      }
+      
+      // Write the configuration file
+      final File configFile = File(path.join(androidRawPath, 'amplifyconfiguration.json'));
+      await configFile.writeAsString(amplifyConfig);
+      
+      print('✅ Android configuration file copied to: ${configFile.path}');
+    } catch (e) {
+      print('⚠️ Failed to copy Android configuration: $e');
+    }
+  }
+  
+  /// Copy configuration files for iOS
+  static Future<void> _copyIOSConfigFiles() async {
+    try {
+      // Load the configuration from plugin assets
+      final ByteData amplifyConfigData = await rootBundle.load('packages/skaletek_sdk/assets/amplifyconfiguration.json');
+      final ByteData awsConfigData = await rootBundle.load('packages/skaletek_sdk/assets/awsconfiguration.json');
+      
+      final String amplifyConfig = String.fromCharCodes(amplifyConfigData.buffer.asUint8List());
+      final String awsConfig = String.fromCharCodes(awsConfigData.buffer.asUint8List());
+      
+      // Get the app's document directory
+      final Directory appDocDir = await getApplicationDocumentsDirectory();
+      final String appPath = appDocDir.path;
+      
+      // Navigate to the iOS Runner directory
+      final String iosRunnerPath = path.join(appPath, '..', '..', '..', 'ios', 'Runner');
+      final Directory iosRunnerDir = Directory(iosRunnerPath);
+      
+      if (!await iosRunnerDir.exists()) {
+        await iosRunnerDir.create(recursive: true);
+      }
+      
+      // Write the configuration files
+      final File amplifyConfigFile = File(path.join(iosRunnerPath, 'amplifyconfiguration.json'));
+      final File awsConfigFile = File(path.join(iosRunnerPath, 'awsconfiguration.json'));
+      
+      await amplifyConfigFile.writeAsString(amplifyConfig);
+      await awsConfigFile.writeAsString(awsConfig);
+      
+      print('✅ iOS configuration files copied to: $iosRunnerPath');
+    } catch (e) {
+      print('⚠️ Failed to copy iOS configuration: $e');
+    }
+  }
+  
   /// Start face liveness detection
   static Future<LivenessResult> startLivenessDetection() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+    
     try {
       // Use the face_liveness_detector package
       final result = await FaceLivenessDetector.startLivenessDetection();
@@ -149,211 +252,9 @@ class SkaletekSDKException implements Exception {
 }
 ```
 
-## 3. iOS Plugin Implementation (ios/Classes/SkaletekSdkPlugin.swift)
+## 3. Alternative Solution: Gradle Plugin Hook (android/build.gradle)
 
-```swift
-import Flutter
-import UIKit
-import Amplify
-import AWSCognitoAuthPlugin
-
-public class SkaletekSdkPlugin: NSObject, FlutterPlugin {
-    private static var isAmplifyConfigured = false
-    
-    public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "skaletek_sdk", binaryMessenger: registrar.messenger())
-        let instance = SkaletekSdkPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel)
-        
-        // Automatically configure Amplify when plugin is registered
-        instance.configureAmplify()
-    }
-    
-    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        switch call.method {
-        case "initializeKYC":
-            initializeKYC(result: result)
-        case "startLivenessDetection":
-            startLivenessDetection(arguments: call.arguments, result: result)
-        case "getVersion":
-            result("1.0.0")
-        default:
-            result(FlutterMethodNotImplemented)
-        }
-    }
-    
-    private func configureAmplify() {
-        guard !SkaletekSdkPlugin.isAmplifyConfigured else {
-            print("✅ Amplify already configured")
-            return
-        }
-        
-        do {
-            // Load configuration from embedded files
-            if let amplifyConfigPath = Bundle.main.path(forResource: "amplifyconfiguration", ofType: "json"),
-               let awsConfigPath = Bundle.main.path(forResource: "awsconfiguration", ofType: "json") {
-                
-                try Amplify.add(plugin: AWSCognitoAuthPlugin())
-                try Amplify.configure()
-                
-                SkaletekSdkPlugin.isAmplifyConfigured = true
-                print("✅ Amplify configured automatically by Skaletek SDK")
-            } else {
-                print("⚠️ AWS configuration files not found in bundle")
-            }
-        } catch {
-            print("⚠️ Could not initialize Amplify: \(error)")
-        }
-    }
-    
-    private func initializeKYC(result: @escaping FlutterResult) {
-        // Your KYC initialization logic here
-        result(["status": "initialized"])
-    }
-    
-    private func startLivenessDetection(arguments: Any?, result: @escaping FlutterResult) {
-        // Your liveness detection logic here
-        result(["status": "started"])
-    }
-}
-
-// Extension to handle AppDelegate integration
-extension SkaletekSdkPlugin {
-    public static func configureInAppDelegate(_ application: UIApplication, 
-                                            didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) {
-        // This method can be called from AppDelegate if needed
-        // But our plugin auto-configures, so this is optional
-    }
-}
-```
-
-## 4. iOS Podspec (ios/skaletek_sdk.podspec)
-
-```ruby
-Pod::Spec.new do |s|
-  s.name             = 'skaletek_sdk'
-  s.version          = '1.0.0'
-  s.summary          = 'Skaletek SDK for KYC with automatic AWS configuration'
-  s.description      = <<-DESC
-A Flutter plugin that provides seamless KYC and face liveness detection with automatic AWS configuration.
-                       DESC
-  s.homepage         = 'https://github.com/skaletek/skaletek_sdk'
-  s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Skaletek' => 'contact@skaletek.com' }
-  s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*'
-  s.dependency 'Flutter'
-  s.dependency 'Amplify'
-  s.dependency 'AWSCognitoAuthPlugin'
-  s.platform = :ios, '11.0'
-  s.swift_version = '5.0'
-  
-  # Resource bundle for configuration files
-  s.resource_bundles = {
-    'SkaletekSDK' => ['Runner/*.json']
-  }
-end
-```
-
-## 5. Android Plugin Implementation (android/src/main/kotlin/com/skaletek/skaletek_sdk/SkaletekSdkPlugin.kt)
-
-```kotlin
-package com.skaletek.skaletek_sdk
-
-import android.app.Application
-import android.content.Context
-import android.util.Log
-import com.amplifyframework.AmplifyException
-import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
-import com.amplifyframework.core.Amplify
-import io.flutter.embedding.engine.plugins.FlutterPlugin
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
-import java.io.IOException
-
-class SkaletekSdkPlugin: FlutterPlugin, MethodCallHandler {
-    private lateinit var channel: MethodChannel
-    private lateinit var context: Context
-    
-    companion object {
-        private const val TAG = "SkaletekSdkPlugin"
-        private var isAmplifyConfigured = false
-    }
-
-    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "skaletek_sdk")
-        channel.setMethodCallHandler(this)
-        context = flutterPluginBinding.applicationContext
-        
-        // Automatically configure Amplify when plugin is attached
-        configureAmplify()
-    }
-
-    override fun onMethodCall(call: MethodCall, result: Result) {
-        when (call.method) {
-            "initializeKYC" -> {
-                initializeKYC(result)
-            }
-            "startLivenessDetection" -> {
-                startLivenessDetection(call.arguments, result)
-            }
-            "getVersion" -> {
-                result.success("1.0.0")
-            }
-            else -> {
-                result.notImplemented()
-            }
-        }
-    }
-
-    private fun configureAmplify() {
-        if (isAmplifyConfigured) {
-            Log.d(TAG, "✅ Amplify already configured")
-            return
-        }
-
-        try {
-            // Check if configuration file exists in raw resources
-            val rawResources = context.resources
-            val configResourceId = rawResources.getIdentifier(
-                "amplifyconfiguration", 
-                "raw", 
-                context.packageName
-            )
-            
-            if (configResourceId != 0) {
-                Amplify.addPlugin(AWSCognitoAuthPlugin())
-                Amplify.configure(context)
-                
-                isAmplifyConfigured = true
-                Log.d(TAG, "✅ Amplify configured automatically by Skaletek SDK")
-            } else {
-                Log.w(TAG, "⚠️ AWS configuration file not found in raw resources")
-            }
-        } catch (error: AmplifyException) {
-            Log.e(TAG, "⚠️ Could not initialize Amplify", error)
-        }
-    }
-
-    private fun initializeKYC(result: Result) {
-        // Your KYC initialization logic here
-        result.success(mapOf("status" to "initialized"))
-    }
-
-    private fun startLivenessDetection(arguments: Any?, result: Result) {
-        // Your liveness detection logic here
-        result.success(mapOf("status" to "started"))
-    }
-
-    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        channel.setMethodCallHandler(null)
-    }
-}
-```
-
-## 6. Android Gradle Configuration (android/build.gradle)
+Instead of copying files at runtime, use a Gradle hook to copy files during build:
 
 ```gradle
 group 'com.skaletek.skaletek_sdk'
@@ -433,18 +334,270 @@ android {
         implementation 'com.amplifyframework:aws-auth-cognito:2.27.0'
     }
 }
+
+// Hook to copy configuration files during build
+afterEvaluate {
+    android.applicationVariants.all { variant ->
+        variant.mergeResourcesProvider.configure {
+            doLast {
+                copyConfigurationFiles()
+            }
+        }
+    }
+}
+
+def copyConfigurationFiles() {
+    def pluginDir = project.rootProject.file('.flutter-plugins-dependencies')
+    if (pluginDir.exists()) {
+        def rawDir = file("${project.rootProject.projectDir}/android/app/src/main/res/raw")
+        if (!rawDir.exists()) {
+            rawDir.mkdirs()
+        }
+        
+        // Copy from plugin assets
+        def pluginAssets = file("${project.projectDir}/src/main/assets")
+        if (pluginAssets.exists()) {
+            copy {
+                from pluginAssets
+                into rawDir
+                include '*.json'
+            }
+            println "✅ Configuration files copied to ${rawDir.path}"
+        }
+    }
+}
 ```
 
-## 7. Resource Bundling Script (tool/bundle_resources.dart)
+## 4. Enhanced Android Plugin (android/src/main/kotlin/com/skaletek/skaletek_sdk/SkaletekSdkPlugin.kt)
 
-```dart
-import 'dart:io';
-import 'dart:convert';
+```kotlin
+package com.skaletek.skaletek_sdk
 
-/// Script to automatically bundle AWS configuration files into the plugin
-/// This should be run during plugin build process
-class ResourceBundler {
-  static const String defaultAmplifyConfig = '''
+import android.content.Context
+import android.util.Log
+import com.amplifyframework.AmplifyException
+import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
+import com.amplifyframework.core.Amplify
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import io.flutter.plugin.common.MethodChannel.Result
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+
+class SkaletekSdkPlugin: FlutterPlugin, MethodCallHandler {
+    private lateinit var channel: MethodChannel
+    private lateinit var context: Context
+    
+    companion object {
+        private const val TAG = "SkaletekSdkPlugin"
+        private var isAmplifyConfigured = false
+    }
+
+    override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "skaletek_sdk")
+        channel.setMethodCallHandler(this)
+        context = flutterPluginBinding.applicationContext
+        
+        // Copy configuration files first
+        copyConfigurationFiles()
+    }
+
+    override fun onMethodCall(call: MethodCall, result: Result) {
+        when (call.method) {
+            "initializeKYC" -> {
+                configureAmplify()
+                initializeKYC(result)
+            }
+            "startLivenessDetection" -> {
+                startLivenessDetection(call.arguments, result)
+            }
+            "getVersion" -> {
+                result.success("1.0.0")
+            }
+            else -> {
+                result.notImplemented()
+            }
+        }
+    }
+
+    private fun copyConfigurationFiles() {
+        try {
+            // Get the raw resources directory
+            val rawDir = File(context.filesDir.parent, "../../android/app/src/main/res/raw")
+            if (!rawDir.exists()) {
+                rawDir.mkdirs()
+            }
+            
+            // Copy configuration from plugin assets
+            val assetManager = context.assets
+            val configFiles = arrayOf("amplifyconfiguration.json")
+            
+            for (fileName in configFiles) {
+                try {
+                    val inputStream: InputStream = assetManager.open(fileName)
+                    val outputFile = File(rawDir, fileName)
+                    
+                    inputStream.use { input ->
+                        outputFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    
+                    Log.d(TAG, "✅ Copied $fileName to ${outputFile.path}")
+                } catch (e: IOException) {
+                    Log.w(TAG, "Could not copy $fileName: ${e.message}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to copy configuration files: ${e.message}")
+        }
+    }
+
+    private fun configureAmplify() {
+        if (isAmplifyConfigured) {
+            Log.d(TAG, "✅ Amplify already configured")
+            return
+        }
+
+        try {
+            // Check if configuration file exists in raw resources
+            val rawResources = context.resources
+            val configResourceId = rawResources.getIdentifier(
+                "amplifyconfiguration", 
+                "raw", 
+                context.packageName
+            )
+            
+            if (configResourceId != 0) {
+                Amplify.addPlugin(AWSCognitoAuthPlugin())
+                Amplify.configure(context)
+                
+                isAmplifyConfigured = true
+                Log.d(TAG, "✅ Amplify configured automatically by Skaletek SDK")
+            } else {
+                Log.w(TAG, "⚠️ AWS configuration file not found in raw resources")
+            }
+        } catch (error: AmplifyException) {
+            Log.e(TAG, "⚠️ Could not initialize Amplify", error)
+        }
+    }
+
+    private fun initializeKYC(result: Result) {
+        result.success(mapOf("status" to "initialized"))
+    }
+
+    private fun startLivenessDetection(arguments: Any?, result: Result) {
+        result.success(mapOf("status" to "started"))
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        channel.setMethodCallHandler(null)
+    }
+}
+```
+
+## 5. iOS Plugin with File Copying (ios/Classes/SkaletekSdkPlugin.swift)
+
+```swift
+import Flutter
+import UIKit
+import Amplify
+import AWSCognitoAuthPlugin
+
+public class SkaletekSdkPlugin: NSObject, FlutterPlugin {
+    private static var isAmplifyConfigured = false
+    
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: "skaletek_sdk", binaryMessenger: registrar.messenger())
+        let instance = SkaletekSdkPlugin()
+        registrar.addMethodCallDelegate(instance, channel: channel)
+        
+        // Copy configuration files first
+        instance.copyConfigurationFiles()
+    }
+    
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        switch call.method {
+        case "initializeKYC":
+            configureAmplify()
+            initializeKYC(result: result)
+        case "startLivenessDetection":
+            startLivenessDetection(arguments: call.arguments, result: result)
+        case "getVersion":
+            result("1.0.0")
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
+    
+    private func copyConfigurationFiles() {
+        guard let pluginBundle = Bundle(for: SkaletekSdkPlugin.self) else {
+            print("⚠️ Could not get plugin bundle")
+            return
+        }
+        
+        let fileManager = FileManager.default
+        let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let runnerURL = documentsURL.appendingPathComponent("../../../ios/Runner")
+        
+        do {
+            try fileManager.createDirectory(at: runnerURL, withIntermediateDirectories: true, attributes: nil)
+            
+            let configFiles = ["amplifyconfiguration.json", "awsconfiguration.json"]
+            
+            for fileName in configFiles {
+                if let sourceURL = pluginBundle.url(forResource: fileName.replacingOccurrences(of: ".json", with: ""), withExtension: "json") {
+                    let destinationURL = runnerURL.appendingPathComponent(fileName)
+                    
+                    if fileManager.fileExists(atPath: destinationURL.path) {
+                        try fileManager.removeItem(at: destinationURL)
+                    }
+                    
+                    try fileManager.copyItem(at: sourceURL, to: destinationURL)
+                    print("✅ Copied \(fileName) to \(destinationURL.path)")
+                }
+            }
+        } catch {
+            print("⚠️ Failed to copy configuration files: \(error)")
+        }
+    }
+    
+    private func configureAmplify() {
+        guard !SkaletekSdkPlugin.isAmplifyConfigured else {
+            print("✅ Amplify already configured")
+            return
+        }
+        
+        do {
+            try Amplify.add(plugin: AWSCognitoAuthPlugin())
+            try Amplify.configure()
+            
+            SkaletekSdkPlugin.isAmplifyConfigured = true
+            print("✅ Amplify configured automatically by Skaletek SDK")
+        } catch {
+            print("⚠️ Could not initialize Amplify: \(error)")
+        }
+    }
+    
+    private func initializeKYC(result: @escaping FlutterResult) {
+        result(["status": "initialized"])
+    }
+    
+    private func startLivenessDetection(arguments: Any?, result: @escaping FlutterResult) {
+        result(["status": "started"])
+    }
+}
+```
+
+## 6. Configuration Files
+
+Create these files in your `assets/` directory:
+
+### assets/amplifyconfiguration.json
+```json
 {
   "UserAgent": "aws-amplify-cli/2.0",
   "Version": "1.0",
@@ -475,9 +628,10 @@ class ResourceBundler {
     }
   }
 }
-''';
+```
 
-  static const String defaultAwsConfig = '''
+### assets/awsconfiguration.json
+```json
 {
   "UserAgent": "aws-amplify-cli/2.0",
   "Version": "1.0",
@@ -500,276 +654,80 @@ class ResourceBundler {
     }
   }
 }
-''';
-
-  static Future<void> bundleResources() async {
-    print('📦 Bundling AWS configuration resources...');
-    
-    // Create iOS resources
-    await _createIOSResources();
-    
-    // Create Android resources
-    await _createAndroidResources();
-    
-    print('✅ Resource bundling completed');
-  }
-  
-  static Future<void> _createIOSResources() async {
-    final iosDir = Directory('ios/Runner');
-    if (!await iosDir.exists()) {
-      await iosDir.create(recursive: true);
-    }
-    
-    // Create amplifyconfiguration.json
-    final amplifyConfigFile = File('ios/Runner/amplifyconfiguration.json');
-    await amplifyConfigFile.writeAsString(defaultAmplifyConfig);
-    
-    // Create awsconfiguration.json
-    final awsConfigFile = File('ios/Runner/awsconfiguration.json');
-    await awsConfigFile.writeAsString(defaultAwsConfig);
-    
-    print('📱 iOS resources created');
-  }
-  
-  static Future<void> _createAndroidResources() async {
-    final androidRawDir = Directory('android/src/main/res/raw');
-    if (!await androidRawDir.exists()) {
-      await androidRawDir.create(recursive: true);
-    }
-    
-    // Create amplifyconfiguration.json
-    final amplifyConfigFile = File('android/src/main/res/raw/amplifyconfiguration.json');
-    await amplifyConfigFile.writeAsString(defaultAmplifyConfig);
-    
-    print('🤖 Android resources created');
-  }
-  
-  static Future<void> updateConfiguration(Map<String, dynamic> config) async {
-    final amplifyConfig = jsonDecode(defaultAmplifyConfig) as Map<String, dynamic>;
-    
-    // Update with provided configuration
-    if (config.containsKey('identityPoolId')) {
-      amplifyConfig['auth']['plugins']['awsCognitoAuthPlugin']['CredentialsProvider']
-          ['CognitoIdentity']['Default']['PoolId'] = config['identityPoolId'];
-    }
-    
-    if (config.containsKey('userPoolId')) {
-      amplifyConfig['auth']['plugins']['awsCognitoAuthPlugin']['CognitoUserPool']
-          ['Default']['PoolId'] = config['userPoolId'];
-    }
-    
-    if (config.containsKey('appClientId')) {
-      amplifyConfig['auth']['plugins']['awsCognitoAuthPlugin']['CognitoUserPool']
-          ['Default']['AppClientId'] = config['appClientId'];
-    }
-    
-    if (config.containsKey('region')) {
-      amplifyConfig['auth']['plugins']['awsCognitoAuthPlugin']['CredentialsProvider']
-          ['CognitoIdentity']['Default']['Region'] = config['region'];
-      amplifyConfig['auth']['plugins']['awsCognitoAuthPlugin']['CognitoUserPool']
-          ['Default']['Region'] = config['region'];
-    }
-    
-    final updatedConfig = jsonEncode(amplifyConfig);
-    
-    // Update iOS
-    await File('ios/Runner/amplifyconfiguration.json').writeAsString(updatedConfig);
-    
-    // Update Android
-    await File('android/src/main/res/raw/amplifyconfiguration.json').writeAsString(updatedConfig);
-    
-    print('🔄 Configuration updated');
-  }
-}
-
-void main(List<String> args) async {
-  if (args.isNotEmpty && args[0] == 'bundle') {
-    await ResourceBundler.bundleResources();
-  } else {
-    print('Usage: dart tool/bundle_resources.dart bundle');
-  }
-}
 ```
 
-## 8. Configuration Files
+## 7. Usage Instructions
 
-### iOS amplifyconfiguration.json (ios/Runner/amplifyconfiguration.json)
-```json
-{
-  "UserAgent": "aws-amplify-cli/2.0",
-  "Version": "1.0",
-  "auth": {
-    "plugins": {
-      "awsCognitoAuthPlugin": {
-        "UserAgent": "aws-amplify-cli/0.1.0",
-        "Version": "0.1.0",
-        "IdentityManager": {
-          "Default": {}
-        },
-        "CredentialsProvider": {
-          "CognitoIdentity": {
-            "Default": {
-              "PoolId": "YOUR_IDENTITY_POOL_ID",
-              "Region": "YOUR_REGION"
-            }
-          }
-        },
-        "CognitoUserPool": {
-          "Default": {
-            "PoolId": "YOUR_USER_POOL_ID",
-            "AppClientId": "YOUR_APP_CLIENT_ID",
-            "Region": "YOUR_REGION"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-### iOS awsconfiguration.json (ios/Runner/awsconfiguration.json)
-```json
-{
-  "UserAgent": "aws-amplify-cli/2.0",
-  "Version": "1.0",
-  "IdentityManager": {
-    "Default": {}
-  },
-  "CredentialsProvider": {
-    "CognitoIdentity": {
-      "Default": {
-        "PoolId": "YOUR_IDENTITY_POOL_ID",
-        "Region": "YOUR_REGION"
-      }
-    }
-  },
-  "CognitoUserPool": {
-    "Default": {
-      "PoolId": "YOUR_USER_POOL_ID",
-      "AppClientId": "YOUR_APP_CLIENT_ID",
-      "Region": "YOUR_REGION"
-    }
-  }
-}
-```
-
-### Android amplifyconfiguration.json (android/src/main/res/raw/amplifyconfiguration.json)
-```json
-{
-  "UserAgent": "aws-amplify-cli/2.0",
-  "Version": "1.0",
-  "auth": {
-    "plugins": {
-      "awsCognitoAuthPlugin": {
-        "UserAgent": "aws-amplify-cli/0.1.0",
-        "Version": "0.1.0",
-        "IdentityManager": {
-          "Default": {}
-        },
-        "CredentialsProvider": {
-          "CognitoIdentity": {
-            "Default": {
-              "PoolId": "YOUR_IDENTITY_POOL_ID",
-              "Region": "YOUR_REGION"
-            }
-          }
-        },
-        "CognitoUserPool": {
-          "Default": {
-            "PoolId": "YOUR_USER_POOL_ID",
-            "AppClientId": "YOUR_APP_CLIENT_ID",
-            "Region": "YOUR_REGION"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-## 9. Usage Instructions for End Users
-
-### Installation
-
-Add this to your app's `pubspec.yaml`:
-
-```yaml
-dependencies:
-  skaletek_sdk: ^1.0.0
-```
-
-Run:
-```bash
-flutter pub get
-```
-
-### Basic Usage (Zero Configuration)
+### For End Users:
 
 ```dart
 import 'package:skaletek_sdk/skaletek_sdk.dart';
 
-// Initialize the SDK (optional - uses default configuration)
-await SkaletekSDK.initialize();
-
-// Start face liveness detection
-try {
-  final result = await SkaletekSDK.startLivenessDetection();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   
-  if (result.isLive) {
-    print('Face is live! Confidence: ${result.confidence}');
-    print('Session ID: ${result.sessionId}');
-  } else {
-    print('Face liveness check failed');
+  // Initialize the SDK - this will automatically copy config files
+  await SkaletekSDK.initialize();
+  
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: HomeScreen(),
+    );
   }
-} on SkaletekSDKException catch (e) {
-  print('Error: ${e.message}');
+}
+
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Future<void> _startLivenessDetection() async {
+    try {
+      final result = await SkaletekSDK.startLivenessDetection();
+      
+      if (result.isLive) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Face is live! Confidence: ${result.confidence}')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Face liveness check failed')),
+        );
+      }
+    } on SkaletekSDKException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.message}')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Skaletek SDK Demo')),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: _startLivenessDetection,
+          child: Text('Start Liveness Detection'),
+        ),
+      ),
+    );
+  }
 }
 ```
 
-### Custom Configuration (Optional)
+## Key Fixes:
 
-```dart
-await SkaletekSDK.initialize(
-  identityPoolId: 'us-east-1:your-identity-pool-id',
-  userPoolId: 'us-east-1_yourUserPoolId',
-  appClientId: 'your-app-client-id',
-  region: 'us-east-1',
-);
-```
+1. **Automatic File Copying**: The plugin now copies configuration files to the user's app directories during initialization
+2. **Multiple Copy Strategies**: Both runtime copying and build-time copying options
+3. **Error Handling**: Better error handling for missing configuration files
+4. **Asset Management**: Configuration files are bundled as Flutter assets
+5. **Path Resolution**: Proper path resolution for both Android and iOS
 
-## 10. Build and Setup Instructions
-
-### For Plugin Development:
-
-1. **Bundle Resources**: Run the resource bundling script
-```bash
-dart tool/bundle_resources.dart bundle
-```
-
-2. **Update Configuration**: Replace placeholder values in configuration files with actual AWS credentials
-
-3. **Test the Plugin**: Create a test Flutter app and add your plugin as a dependency
-
-### For Publishing:
-
-1. **Update pubspec.yaml**: Set the correct version and description
-2. **Add Documentation**: Include comprehensive README.md
-3. **Test on Both Platforms**: Ensure iOS and Android work correctly
-4. **Publish**: Use `flutter pub publish`
-
-## Key Benefits
-
-### For End Users:
-- **No iOS/Android configuration needed** - Plugin handles everything automatically
-- **No manual file copying** - AWS configuration is embedded in the plugin
-- **No Xcode/Android Studio setup** - Just add the dependency and use
-- **Simple API** - One method call to start liveness detection
-
-### What the Plugin Handles Automatically:
-- ✅ AWS Amplify initialization
-- ✅ iOS Swift Package Manager dependencies
-- ✅ Android Gradle dependencies and configuration
-- ✅ Configuration file management
-- ✅ Platform-specific setup
-
-This complete implementation provides a seamless experience for your plugin users by automatically handling all AWS configuration complexity behind the scenes.
+This should resolve the crash issue by ensuring the `amplifyconfiguration.json` file is always in the correct location for the face liveness detection to work properly.

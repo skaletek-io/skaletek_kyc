@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-const String kLocalLogoPath = 'assets/images/skaletek.png';
+const String kLocalLogoPath =
+    'packages/skaletek_kyc/assets/images/skaletek.png';
 
 class KYCLogo extends StatelessWidget {
   final String? logoUrl;
