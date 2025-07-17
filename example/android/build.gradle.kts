@@ -8,6 +8,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
     
     dependencies {
@@ -21,11 +22,10 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
-// Apply Compose plugin to specific projects that need it
+// Apply Compose plugin only to the face_liveness_detector project
 subprojects {
     afterEvaluate {
         if (project.name == "app" || project.name == "face_liveness_detector") {

@@ -45,7 +45,7 @@ class _DemoAppState extends State<DemoApp> {
       issuingCountry: "USA",
     );
     final customization = KYCCustomization(
-      docSrc: DocumentSource.file.value,
+      docSrc: DocumentSource.live.value,
       logoUrl: null,
       partnerName: "YouTube",
       primaryColor: null,

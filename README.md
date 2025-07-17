@@ -40,8 +40,6 @@ buildscript {
 
 allprojects {
     repositories {
-        google()
-        mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
@@ -61,7 +59,7 @@ subprojects {
 ```gradle
 android {
     compileSdk = 35
-    ndkVersion = "27.0"
+    ndkVersion = "27.0.12077973" 
 
     buildFeatures {
         compose = true

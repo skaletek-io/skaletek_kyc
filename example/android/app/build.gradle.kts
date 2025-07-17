@@ -5,17 +5,16 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-
 android {
     namespace = "com.example.example"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
-     buildFeatures {
+    buildFeatures {
         compose = true
     }
 
-     composeOptions {
+    composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
 
@@ -78,7 +77,7 @@ tasks.register("copyAmplifyConfig") {
         if (sourceFile.exists()) {
             targetDir.mkdirs()
             sourceFile.copyTo(file("${targetDir.path}/amplifyconfiguration.json"), overwrite = true)
-            println("✅ Copied amplifyconfiguration.json for face liveness")
+            println("✅ amplifyconfiguration.json for face liveness setup")
         } else {
             println("⚠️ amplifyconfiguration.json not found at ${sourceFile.path}")
         }
