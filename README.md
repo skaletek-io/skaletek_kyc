@@ -103,7 +103,7 @@ tasks.register("copyAmplifyConfig") {
         if (sourceFile.exists()) {
             targetDir.mkdirs()
             sourceFile.copyTo(file("${targetDir.path}/amplifyconfiguration.json"), overwrite = true)
-            println("✅ amplifyconfiguration.json for face liveness setup")
+            println("✅ amplifyconfiguration.json for face liveness configured")
         } else {
             println("⚠️ amplifyconfiguration.json not found at ${sourceFile.path}")
         }

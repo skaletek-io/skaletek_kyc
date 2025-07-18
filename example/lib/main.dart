@@ -39,15 +39,15 @@ class _DemoAppState extends State<DemoApp> {
     });
 
     final userInfo = KYCUserInfo(
-      firstName: "David",
-      lastName: "Omale",
+      firstName: "Whyte",
+      lastName: "Peter",
       documentType: DocumentType.passport.value,
       issuingCountry: "USA",
     );
     final customization = KYCCustomization(
-      docSrc: DocumentSource.live.value,
+      docSrc: DocumentSource.file.value,
       logoUrl: null,
-      partnerName: "YouTube",
+      partnerName: "My Company",
       primaryColor: null,
     );
 

@@ -54,14 +54,14 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    
-    // Add these Compose dependencies
+
+     // Add these Compose dependencies
     implementation("androidx.compose.ui:ui:1.6.7")
     implementation("androidx.compose.material:material:1.6.7")
     implementation("androidx.compose.runtime:runtime:1.6.7")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-
+    
     // AWS Amplify Face Liveness SDK
     implementation("com.amplifyframework.ui:liveness:1.4.0")
     implementation("com.amplifyframework:core:2.27.0")
@@ -77,7 +77,7 @@ tasks.register("copyAmplifyConfig") {
         if (sourceFile.exists()) {
             targetDir.mkdirs()
             sourceFile.copyTo(file("${targetDir.path}/amplifyconfiguration.json"), overwrite = true)
-            println("✅ amplifyconfiguration.json for face liveness setup")
+            println("✅ amplifyconfiguration.json for face liveness configured")
         } else {
             println("⚠️ amplifyconfiguration.json not found at ${sourceFile.path}")
         }
