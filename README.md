@@ -275,17 +275,6 @@ post_install do |installer|
 end
 ```
 
-### Step 2.1: Run Pod Install
-
-```bash
-cd ios && pod install
-```
-
-**That's it!** The setup runs automatically and configures:
-- ✅ **Copies AWS configuration files** to your iOS project  
-- ✅ **Updates AppDelegate.swift** with Amplify initialization
-- ✅ **Adds camera permissions** to Info.plist
-- ✅ **No additional commands needed**
 
 ### Step 3: Add Swift Package Dependencies (Manual)
 
@@ -307,7 +296,8 @@ cd ios && pod install
    - **Version:** `1.3.5` or later
    - **Select:** `FaceLiveness`
 
-### Step 4: Camera Permissions (Automated)
+
+### Step 3: Camera Permissions (Automated)
 
 Camera permissions are automatically added by the setup script. If you need to customize the message, edit this entry in `ios/Runner/Info.plist`:
 
@@ -315,6 +305,19 @@ Camera permissions are automatically added by the setup script. If you need to c
 <key>NSCameraUsageDescription</key>
 <string>This app needs camera access for document scanning and face verification.</string>
 ```
+
+
+### Step 4: Run Pod Install
+
+```bash
+cd ios && pod install
+```
+
+**That's it!** The setup runs automatically and configures:
+- ✅ **Updates AppDelegate.swift** with Amplify initialization
+- ✅ **Adds camera permissions** to Info.plist
+- ✅ **No additional commands needed**
+
 
 ## 📖 API Reference
 
