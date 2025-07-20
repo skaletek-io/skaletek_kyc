@@ -137,12 +137,8 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
 
       // Optional: Listen to connection status for debugging
       _wsService!.statusStream.listen((status) {
-        developer.log('WebSocket status in document upload: $status');
+        // developer.log('WebSocket status in document upload: $status');
       });
-
-      developer.log('WebSocket service initialized for LIVE document source');
-    } else {
-      developer.log('WebSocket service not needed for docSrc: $docSrc');
     }
   }
 
