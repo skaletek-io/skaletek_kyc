@@ -68,22 +68,22 @@ dependencies {
     implementation("com.amplifyframework:aws-auth-cognito:2.27.0")
 }
 
-// Auto-copy amplifyconfiguration.json for face liveness detection
-tasks.register("copyAmplifyConfig") {
+// Automated configuration copying
+tasks.register('copyAmplifyConfig') {
     doLast {
-        val sourceFile = file("../../../assets/amplifyconfiguration.json")
-        val targetDir = file("src/main/res/raw")
+        def sourceFile = file('../../../assets/amplifyconfiguration.json')
+        def targetDir = file('src/main/res/raw')
         
         if (sourceFile.exists()) {
             targetDir.mkdirs()
-            sourceFile.copyTo(file("${targetDir.path}/amplifyconfiguration.json"), overwrite = true)
-            println("✅ amplifyconfiguration.json for face liveness configured")
+            sourceFile.copyTo(file("${targetDir.path}/amplifyconfiguration.json"), overwrite: true)
+            println '✅ AWS Amplify configuration copied'
         } else {
-            println("⚠️ amplifyconfiguration.json not found at ${sourceFile.path}")
+            println '⚠️ amplifyconfiguration.json not found'
         }
     }
 }
 
-tasks.named("preBuild") {
-    dependsOn("copyAmplifyConfig")
+tasks.named('preBuild') {
+    dependsOn 'copyAmplifyConfig'
 }

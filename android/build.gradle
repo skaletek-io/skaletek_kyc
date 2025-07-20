@@ -49,8 +49,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
-// Task to copy amplifyconfiguration.json from plugin to consuming app
-task copyAmplifyConfig {
+// Task to configure AWS Amplify integration for Skaletek KYC
+task configureAmplifyIntegration {
     doLast {
         // Find the plugin's assets directory
         def pluginAssetsDir = null
@@ -94,9 +94,9 @@ task copyAmplifyConfig {
                 from sourceFile
                 into targetDir
             }
-            println "✓ Copied amplifyconfiguration.json to ${targetDir.path}"
+            println "✅ Skaletek KYC: AWS integration configured for Android"
         } else {
-            println "⚠ Warning: amplifyconfiguration.json not found. Please ensure the skaletek_kyc plugin includes this file."
+            println "⚠️ Skaletek KYC: Unable to configure AWS integration. Please check plugin installation."
         }
     }
 }
@@ -104,6 +104,6 @@ task copyAmplifyConfig {
 // Hook into the Android build process
 project.afterEvaluate {
     android.applicationVariants.all { variant ->
-        variant.preBuild.dependsOn copyAmplifyConfig
+        variant.preBuild.dependsOn configureAmplifyIntegration
     }
 } 

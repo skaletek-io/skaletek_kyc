@@ -202,9 +202,9 @@ class FileInputState extends State<FileInput> {
       }
     } catch (e) {
       // If detection fails, keep the original file and show error
-      widget.onShowToast?.call(
-        'Document detection failed. Using original image.',
-      );
+      // widget.onShowToast?.call(
+      //   'Document detection failed. Using original image.',
+      // );
       setState(() {
         _isDetecting = false;
       });

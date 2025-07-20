@@ -1,9 +1,9 @@
-// Skaletek KYC Plugin Setup
-// This script automatically copies amplifyconfiguration.json to the Android raw resources
+// Skaletek KYC Plugin Setup  
+// This script automatically configures AWS Amplify integration for Android
 
-task copyAmplifyConfigFromPlugin {
+task configureKYCIntegration {
     doLast {
-        // Multiple strategies to find the amplifyconfiguration.json file
+        // Multiple strategies to locate plugin resources
         def sourceFile = null
         def attempts = [
             // Strategy 1: Look in .pub-cache for published plugin
@@ -20,7 +20,6 @@ task copyAmplifyConfigFromPlugin {
             def candidate = file(path)
             if (candidate.exists()) {
                 sourceFile = candidate
-                println "📍 Found amplifyconfiguration.json at: ${path}"
                 break
             }
         }
@@ -34,7 +33,6 @@ task copyAmplifyConfigFromPlugin {
                         def configFile = file("${dir.absolutePath}/assets/amplifyconfiguration.json")
                         if (configFile.exists()) {
                             sourceFile = configFile
-                            println "📍 Found amplifyconfiguration.json in pub cache: ${configFile.absolutePath}"
                             return true // break from closure
                         }
                     }
@@ -51,16 +49,10 @@ task copyAmplifyConfigFromPlugin {
                 from sourceFile
                 into targetDir
             }
-            println "✅ Successfully copied amplifyconfiguration.json to ${targetFile.absolutePath}"
-            println "   Face Liveness Detector will now work properly on Android!"
+            println "✅ Skaletek KYC: Android integration configured successfully"
         } else {
-            println ""
-            println "❌ Could not find amplifyconfiguration.json"
-            println "   Please ensure:"
-            println "   1. The skaletek_kyc plugin is properly installed"
-            println "   2. The plugin assets contain amplifyconfiguration.json"
-            println "   3. Or manually place the file in your app's assets folder"
-            println ""
+            println "⚠️ Skaletek KYC: Unable to configure Android integration"
+            println "   Please ensure the plugin is properly installed"
         }
     }
 }
@@ -69,7 +61,7 @@ task copyAmplifyConfigFromPlugin {
 afterEvaluate {
     if (project.hasProperty('android')) {
         android.applicationVariants.all { variant ->
-            variant.preBuild.dependsOn copyAmplifyConfigFromPlugin
+            variant.preBuild.dependsOn configureKYCIntegration
         }
     }
 } 
