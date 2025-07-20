@@ -700,13 +700,13 @@ class CameraService {
           .difference(_requestStartTime!)
           .inMilliseconds;
       _performanceMetrics.addNetworkResponseTime(networkResponseTime);
-      developer.log('Network response time: ${networkResponseTime}ms');
+      // developer.log('Network response time: ${networkResponseTime}ms');
     }
 
     _pendingRequest = false;
 
     try {
-      developer.log('Received message: $data');
+      // developer.log('Received message: $data');
 
       // Handle error responses from the server
       if (data['success'] == false) {
@@ -754,7 +754,7 @@ class CameraService {
           // Transform bbox from cropped image coordinates back to screen coordinates
           bbox = _transformBboxFromCroppedToScreen(croppedBbox);
 
-          developer.log('Transformed bbox to screen coordinates: $bbox');
+          // developer.log('Transformed bbox to screen coordinates: $bbox');
         } catch (e) {
           developer.log('Error parsing bbox: $e');
           bbox = null;
@@ -828,9 +828,9 @@ class CameraService {
         if (_latestCameraImage != null) {
           final arrayBuffer = await _processCameraImage(_latestCameraImage!);
           if (arrayBuffer != null && !_disposed) {
-            developer.log(
-              'Sending optimized image data: ${arrayBuffer.length} bytes',
-            );
+            // developer.log(
+            //   'Sending optimized image data: ${arrayBuffer.length} bytes',
+            // );
             _wsService.send(arrayBuffer);
           } else {
             _pendingRequest = false;
@@ -854,7 +854,7 @@ class CameraService {
         _latestCameraImage = image;
       });
       _isStreaming = true;
-      developer.log('Image stream started');
+      // developer.log('Image stream started');
     } catch (e) {
       developer.log('Error starting image stream: $e');
     }
@@ -868,7 +868,7 @@ class CameraService {
       cameraController.stopImageStream();
       _isStreaming = false;
       _latestCameraImage = null;
-      developer.log('Image stream stopped');
+      // developer.log('Image stream stopped');
     } catch (e) {
       developer.log('Error stopping image stream: $e');
     }
@@ -1093,10 +1093,10 @@ class CameraService {
         targetBboxList,
       );
 
-      developer.log(
-        'Detection crop completed: ${originalBytes.length} → ${croppedBytes.length} bytes '
-        '(${((croppedBytes.length / originalBytes.length) * 100).toStringAsFixed(1)}% of original)',
-      );
+      // developer.log(
+      //   'Detection crop completed: ${originalBytes.length} → ${croppedBytes.length} bytes '
+      //   '(${((croppedBytes.length / originalBytes.length) * 100).toStringAsFixed(1)}% of original)',
+      // );
 
       return croppedBytes;
     } catch (e) {
@@ -1128,11 +1128,11 @@ class CameraService {
         croppedBbox.height, // Height unchanged
       );
 
-      developer.log('Bbox transformation:');
-      developer.log('  Server bbox (cropped image): $croppedBbox');
-      developer.log('  Crop offset: X=$cropOffsetX, Y=$cropOffsetY');
-      developer.log('  Transformed bbox (screen): $screenBbox');
-      developer.log('  Target rect (screen): $targetRect');
+      // developer.log('Bbox transformation:');
+      // developer.log('  Server bbox (cropped image): $croppedBbox');
+      // developer.log('  Crop offset: X=$cropOffsetX, Y=$cropOffsetY');
+      // developer.log('  Transformed bbox (screen): $screenBbox');
+      // developer.log('  Target rect (screen): $targetRect');
 
       return screenBbox;
     } catch (e) {
@@ -1154,9 +1154,9 @@ class CameraService {
       ui.Image processedImage = image;
       if (_currentImageScale < 1.0) {
         processedImage = await _resizeImage(image, _currentImageScale);
-        developer.log(
-          'Resized image by ${(_currentImageScale * 100).toStringAsFixed(0)}%',
-        );
+        // developer.log(
+        //   'Resized image by ${(_currentImageScale * 100).toStringAsFixed(0)}%',
+        // );
       }
 
       // Always use PNG format with adaptive quality and scaling
@@ -1165,10 +1165,10 @@ class CameraService {
       );
       final optimizedBytes = byteData!.buffer.asUint8List();
 
-      developer.log(
-        'Using PNG format with ${(_currentImageQuality * 100).toStringAsFixed(0)}% quality, '
-        '${(_currentImageScale * 100).toStringAsFixed(0)}% scale',
-      );
+      // developer.log(
+      //   'Using PNG format with ${(_currentImageQuality * 100).toStringAsFixed(0)}% quality, '
+      //   '${(_currentImageScale * 100).toStringAsFixed(0)}% scale',
+      // );
 
       return optimizedBytes;
     } catch (e) {
@@ -1210,25 +1210,25 @@ class CameraService {
       // Aggressive optimization for poor connections
       _reduceQualityForPoorConnection();
 
-      developer.log(
-        'Poor performance detected - Network: ${metrics.averageNetworkResponseTime.toStringAsFixed(0)}ms, '
-        'Processing: ${metrics.averageProcessingTime.toStringAsFixed(0)}ms',
-      );
+      // developer.log(
+      //   'Poor performance detected - Network: ${metrics.averageNetworkResponseTime.toStringAsFixed(0)}ms, '
+      //   'Processing: ${metrics.averageProcessingTime.toStringAsFixed(0)}ms',
+      // );
     } else if (metrics.isPerformanceGood && metrics.isNetworkFast) {
       // Increase quality for good connections
       _increaseQualityForGoodConnection();
 
-      developer.log(
-        'Good performance detected - Network: ${metrics.averageNetworkResponseTime.toStringAsFixed(0)}ms, '
-        'Processing: ${metrics.averageProcessingTime.toStringAsFixed(0)}ms',
-      );
+      // developer.log(
+      //   'Good performance detected - Network: ${metrics.averageNetworkResponseTime.toStringAsFixed(0)}ms, '
+      //   'Processing: ${metrics.averageProcessingTime.toStringAsFixed(0)}ms',
+      // );
     }
 
-    developer.log(
-      'Current settings: interval=${_currentDetectionInterval.inMilliseconds}ms, '
-      'quality=${(_currentImageQuality * 100).toStringAsFixed(0)}%, '
-      'scale=${(_currentImageScale * 100).toStringAsFixed(0)}% (PNG format)',
-    );
+    // developer.log(
+    //   'Current settings: interval=${_currentDetectionInterval.inMilliseconds}ms, '
+    //   'quality=${(_currentImageQuality * 100).toStringAsFixed(0)}%, '
+    //   'scale=${(_currentImageScale * 100).toStringAsFixed(0)}% (PNG format)',
+    // );
   }
 
   void _reduceQualityForPoorConnection() {
@@ -1265,7 +1265,7 @@ class CameraService {
     // Note: Always using PNG format as requested
 
     if (settingsChanged) {
-      developer.log('Reduced quality for poor connection');
+      // developer.log('Reduced quality for poor connection');
     }
   }
 
@@ -1302,7 +1302,7 @@ class CameraService {
     // Note: Always using PNG format as requested
 
     if (settingsChanged) {
-      developer.log('Increased quality for good connection');
+      // developer.log('Increased quality for good connection');
     }
   }
 
@@ -1399,7 +1399,7 @@ class CameraService {
   void _resetSteadyState() {
     _steadyStartTime = null;
     _captureTriggered = false;
-    developer.log('Steady state reset');
+    // developer.log('Steady state reset');
   }
 
   /// Determine feedback state based on message content
@@ -1633,17 +1633,17 @@ class CameraService {
       final scaleX = imageWidth / cameraWidth;
       final scaleY = imageHeight / cameraHeight;
 
-      developer.log('Manual capture - Image: ${imageWidth}x${imageHeight}');
-      developer.log('Manual capture - Camera: ${cameraWidth}x${cameraHeight}');
-      developer.log('Manual capture - Screen: ${screenWidth}x${screenHeight}');
-      developer.log('Manual capture - Preview scale: $previewScale');
-      developer.log(
-        'Manual capture - Scaled preview width: $scaledPreviewWidth',
-      );
-      developer.log('Manual capture - Crop offset X: $cropOffsetX');
-      developer.log(
-        'Manual capture - Image scale factors: scaleX=$scaleX, scaleY=$scaleY',
-      );
+      // developer.log('Manual capture - Image: ${imageWidth}x${imageHeight}');
+      // developer.log('Manual capture - Camera: ${cameraWidth}x${cameraHeight}');
+      // developer.log('Manual capture - Screen: ${screenWidth}x${screenHeight}');
+      // developer.log('Manual capture - Preview scale: $previewScale');
+      // developer.log(
+      //   'Manual capture - Scaled preview width: $scaledPreviewWidth',
+      // );
+      // developer.log('Manual capture - Crop offset X: $cropOffsetX');
+      // developer.log(
+      //   'Manual capture - Image scale factors: scaleX=$scaleX, scaleY=$scaleY',
+      // );
 
       // Transform target rectangle from screen coordinates to camera coordinates
       final cameraTargetRect = Rect.fromLTWH(
@@ -1677,13 +1677,13 @@ class CameraService {
         paddedImageRect.bottom.clamp(0.0, imageHeight),
       );
 
-      developer.log('Manual capture - Original target rect: $targetRect');
-      developer.log('Manual capture - Camera target rect: $cameraTargetRect');
-      developer.log('Manual capture - Image target rect: $imageTargetRect');
-      developer.log(
-        'Manual capture - Padded image rect (10px): $paddedImageRect',
-      );
-      developer.log('Manual capture - Clamped rect: $clampedRect');
+      // developer.log('Manual capture - Original target rect: $targetRect');
+      // developer.log('Manual capture - Camera target rect: $cameraTargetRect');
+      // developer.log('Manual capture - Image target rect: $imageTargetRect');
+      // developer.log(
+      //   'Manual capture - Padded image rect (10px): $paddedImageRect',
+      // );
+      // developer.log('Manual capture - Clamped rect: $clampedRect');
 
       // Convert to bbox format for cropping
       final targetBboxList = [
@@ -1705,9 +1705,9 @@ class CameraService {
       final croppedFile = XFile(croppedPath);
       _captureController.add(croppedFile);
 
-      developer.log(
-        'Manual capture completed with proper coordinate transformation',
-      );
+      // developer.log(
+      //   'Manual capture completed with proper coordinate transformation',
+      // );
     } catch (e) {
       developer.log('Error during manual capture: $e');
     }

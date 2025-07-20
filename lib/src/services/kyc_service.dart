@@ -84,11 +84,11 @@ class KYCService {
 
   /// Create a liveness session
   Future<String?> createSession() async {
-    developer.log('config: $_config');
+    // developer.log('config: $_config');
     if (_config?.token.isEmpty ?? true) return null;
 
     return await _safeApiCall(() async {
-      developer.log('Creating liveness session...');
+      // developer.log('Creating liveness session...');
       final uri = Uri.parse('$_baseUrl/liveness');
 
       final response = await http.post(
@@ -127,7 +127,7 @@ class KYCService {
     }
 
     final result = await _safeApiCall(() async {
-      developer.log('Getting liveness result...');
+      // developer.log('Getting liveness result...');
       final uri = Uri.parse('$_baseUrl/liveness/result');
       final response = await http.post(
         uri,
@@ -165,7 +165,7 @@ class KYCService {
     }
 
     return await _safeApiCall(() async {
-      developer.log('Verifying identity...');
+      // developer.log('Verifying identity...');
       final uri = Uri.parse('$_baseUrl/verify/');
       final response = await http.post(
         uri,
@@ -195,7 +195,7 @@ class KYCService {
     }
 
     final result = await _safeApiCall(() async {
-      developer.log('Getting presigned URLs...');
+      // developer.log('Getting presigned URLs...');
       final uri = Uri.parse('$_baseUrl/presign');
       final response = await http.post(
         uri,
@@ -226,7 +226,7 @@ class KYCService {
   /// Detect document in image
   Future<List<double>?> detectDocument(File file) async {
     final result = await _safeApiCall(() async {
-      developer.log('Detecting document...');
+      // developer.log('Detecting document...');
       final uri = Uri.parse('$_mlBaseUrl/detection/document');
 
       final request = http.MultipartRequest('POST', uri)
@@ -311,11 +311,11 @@ class KYCService {
   ) async {
     // Validate the signed URL before proceeding
     if (signedUrl.url.isEmpty) {
-      developer.log('Error: Signed URL is empty');
+      // developer.log('Error: Signed URL is empty');
       throw SessionError('Invalid upload URL: URL is empty');
     }
 
-    developer.log('Uploading document to: ${signedUrl.url}');
+    // developer.log('Uploading document to: ${signedUrl.url}');
     final request = http.MultipartRequest('POST', Uri.parse(signedUrl.url));
 
     // Add fields
@@ -341,7 +341,7 @@ class KYCService {
 
     // Check if service has been disposed
     if (_disposed) {
-      developer.log('Service has been disposed, skipping error handling');
+      // developer.log('Service has been disposed, skipping error handling');
       return;
     }
 
@@ -376,7 +376,7 @@ class KYCService {
     String? context,
   }) {
     final responseBody = response.body;
-    developer.log('${context ?? 'API'} response: $responseBody');
+    // developer.log('${context ?? 'API'} response: $responseBody');
 
     Map<String, dynamic> data;
     try {
