@@ -126,7 +126,6 @@ class ErrorHandlerService {
       case ErrorType.server:
         return 'Server error. Please try again later.';
       case ErrorType.unknown:
-      default:
         return errorInfo.message.isNotEmpty
             ? errorInfo.message
             : 'An unexpected error occurred. Please try again.';

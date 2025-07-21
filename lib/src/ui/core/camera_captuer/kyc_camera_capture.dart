@@ -42,7 +42,7 @@
 /// 3. Final capture converts to PNG and crops to exact target rectangle
 /// 4. Coordinate transformation accounts for camera orientation and scaling
 /// */
-///
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:skaletek_kyc/src/models/kyc_api_models.dart';

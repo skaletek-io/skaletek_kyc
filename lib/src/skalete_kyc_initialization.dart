@@ -7,6 +7,7 @@ import 'models/kyc_customization.dart';
 import 'services/kyc_state_provider.dart';
 import 'ui/kyc_verification_screen.dart';
 import 'ui/shared/app_color.dart';
+import 'dart:developer' as developer;
 
 class SkaletekKYC {
   SkaletekKYC._internal();
@@ -30,7 +31,7 @@ class SkaletekKYC {
     required Function(Map<String, dynamic> result) onComplete,
   }) async {
     try {
-      print('SkaletekKYC: Starting verification...');
+      // developer.log('SkaletekKYC: Starting verification...');
 
       final config = KYCConfig(
         token: token,
@@ -64,7 +65,7 @@ class SkaletekKYC {
         onComplete(KYCResult.failure(status: KYCStatus.failure).toMap());
       }
     } catch (e) {
-      print('SkaletekKYC: Error during verification: $e');
+      developer.log('SkaletekKYC: Error during verification: $e');
       onComplete(KYCResult.failure(status: KYCStatus.failure).toMap());
     }
   }

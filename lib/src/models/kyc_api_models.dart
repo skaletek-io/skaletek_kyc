@@ -218,7 +218,6 @@ class DetectionChecks {
       case DetectionCheckResult.fail:
         return 'FAIL';
       case DetectionCheckResult.none:
-      default:
         return null;
     }
   }
