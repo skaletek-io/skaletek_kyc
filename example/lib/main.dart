@@ -53,8 +53,7 @@ class _DemoAppState extends State<DemoApp> {
 
     SkaletekKYC.instance.startVerification(
       context: context,
-      token: "039cfd771d204bafb1ea47da0cc06164",
-      // token: "ca9d80071d174238acedbf1e9a08d592",
+      token: "your-token-here",
       userInfo: userInfo,
       customization: customization,
       onComplete: (result) {

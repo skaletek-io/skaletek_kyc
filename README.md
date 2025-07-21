@@ -14,12 +14,6 @@ A comprehensive Flutter plugin for **Know Your Customer (KYC) verification** ser
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-Before you begin, ensure you have:
-- Flutter 3.8.1 or higher
-- AWS Amplify configuration files (`amplifyconfiguration.json`, `awsconfiguration.json`)
-- Valid Skaletek KYC session token
 
 ### 1. Installation
 
@@ -36,52 +30,6 @@ flutter pub get
 ```
 
 ### 2. Platform Setup
-
-Choose your platform for detailed setup instructions:
-
-- [📱 **Android Setup**](#android-setup) - Automated with manual configuration
-- [🍎 **iOS Setup**](#ios-setup) - Semi-automated with manual steps
-
-### 3. Basic Usage
-
-```dart
-import 'package:skaletek_kyc/skaletek_kyc.dart';
-
-// Configure user information
-final userInfo = KYCUserInfo(
-  firstName: "John",
-  lastName: "Doe",
-  documentType: DocumentType.passport.value,
-  issuingCountry: "USA",
-);
-
-// Customize the verification experience
-final customization = KYCCustomization(
-  docSrc: DocumentSource.camera.value,
-  partnerName: "Your App Name",
-  primaryColor: Colors.blue,
-  logoUrl: "https://yourapp.com/logo.png",
-);
-
-// Start verification
-SkaletekKYC.instance.startVerification(
-  context: context,
-  token: "your-session-token",
-  userInfo: userInfo,
-  customization: customization,
-  onComplete: (result) {
-    if (result['success'] == true) {
-      print('✅ KYC Verification successful!');
-      // Handle success
-    } else {
-      print('❌ KYC Verification failed: ${result['status']}');
-      // Handle failure
-    }
-  },
-);
-```
-
----
 
 ## 📱 Android Setup
 
@@ -363,48 +311,72 @@ final customization = KYCCustomization(
 import 'package:flutter/material.dart';
 import 'package:skaletek_kyc/skaletek_kyc.dart';
 
-class KYCVerificationScreen extends StatelessWidget {
-  const KYCVerificationScreen({Key? key}) : super(key: key);
+void main() {
+  runApp(const MyApp());
+}
 
-  void _startKYCVerification(BuildContext context) {
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Skaletek KYC Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
+      home: const DemoApp(),
+    );
+  }
+}
+
+class DemoApp extends StatefulWidget {
+  const DemoApp({super.key});
+  @override
+  State<DemoApp> createState() => _DemoAppState();
+}
+
+class _DemoAppState extends State<DemoApp> {
+  bool _isVerifying = false;
+  String _status = '';
+  bool _hasVerificationResult = false;
+
+  void _startVerification() async {
+    setState(() {
+      _isVerifying = true;
+      _status = 'Starting verification...';
+      _hasVerificationResult = false;
+    });
+
     final userInfo = KYCUserInfo(
-      firstName: "John",
-      lastName: "Doe", 
+      firstName: "Whyte",
+      lastName: "Peter",
       documentType: DocumentType.passport.value,
       issuingCountry: "USA",
     );
-
     final customization = KYCCustomization(
-      docSrc: DocumentSource.camera.value,
-      partnerName: "My App",
-      primaryColor: Theme.of(context).primaryColor,
-      logoUrl: "https://myapp.com/logo.png",
+      docSrc: DocumentSource.file.value,
+      logoUrl: null,
+      partnerName: "My Company",
+      primaryColor: null,
     );
 
     SkaletekKYC.instance.startVerification(
       context: context,
-      token: "your-session-token", // Get from your backend
+      token: "your-token-here",
       userInfo: userInfo,
       customization: customization,
       onComplete: (result) {
-        final success = result['success'] as bool? ?? false;
-        final status = result['status'] as String? ?? 'Unknown';
-        
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ Identity verification successful!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('❌ Verification failed: $status'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        setState(() {
+          _isVerifying = false;
+          _hasVerificationResult = true;
+          if (result['success'] == true) {
+            _status = 'Verification completed successfully!';
+          } else {
+            _status =
+                'Verification failed:  {result['status'] ?? 'Unknown error'}';
+          }
+        });
       },
     );
   }
@@ -413,46 +385,78 @@ class KYCVerificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Identity Verification'),
+        title: const Text('Skaletek KYC'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.verified_user,
-              size: 100,
-              color: Colors.blue,
-            ),
+            const Icon(Icons.verified_user, size: 80, color: Color(0xFF1261C1)),
             const SizedBox(height: 24),
             const Text(
-              'Verify Your Identity',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              'Skaletek KYC SDK Demo',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                'We need to verify your identity to ensure the security of your account.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
+            const Text(
+              'This demo shows how to integrate the Skaletek KYC Flutter SDK for identity verification.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () => _startKYCVerification(context),
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Start Verification'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
+            if (_isVerifying)
+              const Column(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Verification in progress...'),
+                ],
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _startVerification,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1261C1),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Start Identity Verification'),
                 ),
               ),
-            ),
+
+            const SizedBox(height: 20),
+            if (_hasVerificationResult && _status.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _status.contains('success')
+                      ? Colors.green[50]
+                      : Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _status.contains('success')
+                        ? Colors.green
+                        : Colors.red,
+                  ),
+                ),
+                child: Text(
+                  _status,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _status.contains('success')
+                        ? Colors.green[700]
+                        : Colors.red[700],
+                  ),
+                ),
+              ),
           ],
         ),
       ),
