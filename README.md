@@ -176,7 +176,12 @@ First, ensure your `ios/Podfile` specifies the minimum iOS version:
 
 ```ruby
 platform :ios, '14.0'
+
 ```
+
+####  `ios/Runner.xcodeproj/project.pbxproj` 
+IPHONEOS_DEPLOYMENT_TARGET = 14.0
+
 
 ### Step 2: Automated iOS Setup (One-time Podfile Update)
 

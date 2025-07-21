@@ -35,7 +35,8 @@ task configureKYCIntegration {
             }
         }
         
-        // Always use src/main/res/raw relative to current project directory
+        // Simple target directory - always relative to current project
+        // Since this script is applied to the app module, we're already in the right context
         def targetDir = file("src/main/res/raw")
         
         if (sourceFile && sourceFile.exists()) {
@@ -43,8 +44,6 @@ task configureKYCIntegration {
             def targetFile = new File(targetDir, "amplifyconfiguration.json")
             targetFile.text = sourceFile.text
             println "✅ Skaletek KYC: Android integration configured successfully"
-            println "   Source: ${sourceFile.absolutePath}"
-            println "   Target: ${targetFile.absolutePath}"
         } else {
             println "⚠️ Skaletek KYC: amplifyconfiguration.json not found"
             println "   Make sure the skaletek_kyc package is added to your pubspec.yaml"
@@ -60,4 +59,4 @@ afterEvaluate {
             variant.preBuild.dependsOn configureKYCIntegration
         }
     }
-} 
+}

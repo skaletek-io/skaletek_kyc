@@ -70,4 +70,14 @@ dependencies {
 }
 
 // Skaletek KYC Android Setup - Local Development
-apply(from = "../../../android/skaletek_kyc.gradle")
+//apply(from = "../../../android/skaletek_kyc.gradle")
+
+apply {
+    val pubCacheDir = file("${System.getProperty("user.home")}/.pub-cache/hosted/pub.dev")
+    val setupScript = pubCacheDir.listFiles()?.find { it.name.startsWith("skaletek_kyc-") }
+        ?.let { file("${it.absolutePath}/android/skaletek_kyc.gradle") }
+    
+    if (setupScript?.exists() == true) {
+        from(setupScript)
+    }
+}
