@@ -1,0 +1,3 @@
+Project dir: /Users/apple/Documents/code/skaletek/skaletek_kyc/example/android/app
+Target dir: /Users/apple/Documents/code/skaletek/skaletek_kyc/example/android/app/src/main/res/raw
+PWD: /Users/apple/Documents/code/skaletek/skaletek_kyc/example/android
