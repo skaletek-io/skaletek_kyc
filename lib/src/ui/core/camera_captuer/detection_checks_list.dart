@@ -36,7 +36,6 @@ class DetectionChecksList extends StatelessWidget {
               label = DetectionChecks.labels[key]!;
               break;
             case DetectionCheckResult.none:
-            default:
               label = DetectionChecks.labels[key]!;
               break;
           }
@@ -69,7 +68,6 @@ class _DetectionCheckItem extends StatelessWidget {
         );
         break;
       case DetectionCheckResult.none:
-      default:
         icon = Container(
           width: 18,
           height: 18,

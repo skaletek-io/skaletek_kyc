@@ -181,7 +181,7 @@ class KYCService {
       final redirectUrl = data['redirect_url'];
 
       if (redirectUrl == null) {
-        throw SessionError('No redirect URL received');
+        throw SessionError('Failed to verify identity, Please try again');
       }
 
       return redirectUrl;
@@ -386,11 +386,9 @@ class KYCService {
     }
 
     // Check for error messages in response body (regardless of HTTP status)
-    if (data is Map<String, dynamic>) {
-      final message = data['message']?.toString() ?? '';
-      if (message.isNotEmpty) {
-        throw SessionError(message, redirectUrl: data['redirect_url']);
-      }
+    final message = data['message']?.toString() ?? '';
+    if (message.isNotEmpty) {
+      throw SessionError(message, redirectUrl: data['redirect_url']);
     }
 
     // Check HTTP status code

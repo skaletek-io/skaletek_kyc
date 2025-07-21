@@ -74,10 +74,7 @@ class _KYCFaceVerificationState extends State<KYCFaceVerification> {
     );
 
     try {
-      String? result = await widget.kycService.verifyIdentity();
-      if (result is! String) {
-        throw Exception('Failed to verify identity, Please try again');
-      }
+      await widget.kycService.verifyIdentity();
 
       if (bottomSheetContext != null && bottomSheetContext!.mounted) {
         Navigator.of(bottomSheetContext!).pop(); // Close only the bottom sheet

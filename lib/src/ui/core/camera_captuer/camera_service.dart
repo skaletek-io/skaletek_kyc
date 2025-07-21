@@ -948,7 +948,6 @@ class CameraService {
 
     final yStride = yPlane.bytesPerRow;
     final uStride = uPlane.bytesPerRow;
-    final vStride = vPlane.bytesPerRow;
 
     final rgbaBuffer = Uint8List(width * height * 4);
 

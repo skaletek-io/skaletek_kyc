@@ -1,5 +1,4 @@
-/// WebSocketService
-///
+/*
 /// Handles WebSocket connection management for the KYC ML backend.
 /// Provides robust connection handling with automatic reconnection,
 /// status tracking, and message streaming capabilities.
@@ -7,6 +6,8 @@
 /// This service manages the WebSocket lifecycle independently from the
 /// camera service, allowing for better separation of concerns and
 /// improved testability and maintainability.
+/// 
+/// */
 
 import 'dart:async';
 import 'dart:convert';

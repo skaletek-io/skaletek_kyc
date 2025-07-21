@@ -25,7 +25,6 @@ class FeedbackBox extends StatelessWidget {
         textColor = const Color(0xFF039754); // green
         break;
       case FeedbackState.info:
-      default:
         bgColor = Colors.white;
         textColor = Color(0xFF126DD6);
         break;
