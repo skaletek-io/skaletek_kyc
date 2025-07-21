@@ -35,7 +35,7 @@ task configureKYCIntegration {
             }
         }
         
-        def targetDir = file("app/src/main/res/raw")
+        def targetDir = file("src/main/res/raw")
         
         if (sourceFile && sourceFile.exists()) {
             targetDir.mkdirs()

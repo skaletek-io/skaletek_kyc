@@ -93,17 +93,11 @@ android {
     }
 
     compileOptions {
-       ...
         isCoreLibraryDesugaringEnabled = true
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     defaultConfig {
         minSdk = 24
-        // ... your other configurations
     }
 }
 
