@@ -8,7 +8,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,13 +48,12 @@ class _HomeScreenState extends State<HomeScreen> {
       docSrc: DocumentSource.file.value,
       logoUrl: null,
       partnerName: "YouTube",
-      primaryColor: null,
+      primaryColor: '#126DD6',
     );
 
     SkaletekKYC.instance.startVerification(
       context: context,
-      token: "039cfd771d204bafb1ea47da0cc06164",
-      // token: "a1f2bbdde4974ad9808f9a748c09ed3d",
+      token: "your-token-here",
       userInfo: userInfo,
       customization: customization,
       onComplete: (result) {
