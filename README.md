@@ -7,7 +7,6 @@ A comprehensive Flutter plugin for **Know Your Customer (KYC) verification** ser
 - 🆔 **Document Verification**: Passport, National ID, Driver's License, and more
 - 👤 **Face Liveness Detection**: Real-time biometric verification using AWS Amplify
 - 📸 **Camera Integration**: Live document capture with auto-detection
-- 📁 **File Upload**: Support for gallery/file-based document upload
 - 🎨 **Customizable UI**: Branded verification experience
 - 🔒 **Secure**: Enterprise-grade security with AWS infrastructure
 - 📱 **Cross-platform**: iOS and Android support
@@ -180,7 +179,9 @@ platform :ios, '14.0'
 ```
 
 ####  `ios/Runner.xcodeproj/project.pbxproj` 
+```
 IPHONEOS_DEPLOYMENT_TARGET = 14.0
+```
 
 
 ### Step 2: Automated iOS Setup (One-time Podfile Update)
@@ -238,18 +239,6 @@ Camera permissions are automatically added by the setup script. If you need to c
 <key>NSCameraUsageDescription</key>
 <string>This app needs camera access for document scanning and face verification.</string>
 ```
-
-
-### Step 4: Run Pod Install
-
-```bash
-cd ios && pod install
-```
-
-**That's it!** The setup runs automatically and configures:
-- ✅ **Updates AppDelegate.swift** with Amplify initialization
-- ✅ **Adds camera permissions** to Info.plist
-- ✅ **No additional commands needed**
 
 
 ## 📖 API Reference
