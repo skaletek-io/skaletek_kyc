@@ -154,20 +154,12 @@ class FileInputState extends State<FileInput> {
       final bbox = await widget.kycService!.detectDocument(file);
 
       if (bbox != null && bbox.length == 4) {
-        developer.log('FileInput: Cropping image with bbox: $bbox');
-        developer.log(
-          'FileInput: Original image size: ${imageFile.bytes!.length} bytes',
-        );
-
         // Crop the image using the bounding box
         final croppedBytes = await ImageCropper.cropImage(
           imageFile.bytes!,
           bbox,
         );
 
-        developer.log(
-          'FileInput: Cropped image size: ${croppedBytes.length} bytes',
-        );
         final croppedPath = await ImageCropper.saveCroppedImage(
           croppedBytes,
           imageFile.path,

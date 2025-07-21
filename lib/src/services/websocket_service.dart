@@ -12,7 +12,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:developer' as developer;
+// import 'dart:developer' as developer;
 
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
@@ -74,15 +74,15 @@ class WebSocketService {
   /// Send data through the WebSocket
   void send(Uint8List data) {
     if (_status != WebSocketStatus.connected || _channel == null) {
-      developer.log('WebSocketService: Cannot send data - not connected');
+      // developer.log('WebSocketService: Cannot send data - not connected');
       return;
     }
 
     try {
       _channel!.sink.add(data);
-      developer.log('WebSocketService: Sent ${data.length} bytes');
+      // developer.log('WebSocketService: Sent ${data.length} bytes');
     } catch (e) {
-      developer.log('WebSocketService: Error sending data: $e');
+      // developer.log('WebSocketService: Error sending data: $e');
       _handleError('Failed to send data: $e');
     }
   }
@@ -91,7 +91,7 @@ class WebSocketService {
   void _openSocket() {
     if (_disposed) return;
 
-    developer.log('WebSocketService: Connecting to ${AppConfig.mlSocketUrl}');
+    // developer.log('WebSocketService: Connecting to ${AppConfig.mlSocketUrl}');
 
     try {
       _channel = WebSocketChannel.connect(
@@ -110,9 +110,9 @@ class WebSocketService {
       _updateStatus(WebSocketStatus.connected);
       _reconnectAttempts = 0;
 
-      developer.log('WebSocketService: Connection established');
+      // developer.log('WebSocketService: Connection established');
     } catch (e) {
-      developer.log('WebSocketService: Connection failed: $e');
+      // developer.log('WebSocketService: Connection failed: $e');
       _handleError('Connection failed: $e');
       _scheduleReconnect();
     }
@@ -123,7 +123,7 @@ class WebSocketService {
     if (_disposed) return;
 
     try {
-      developer.log('WebSocketService: Received message');
+      // developer.log('WebSocketService: Received message');
 
       // Parse the JSON message (handle double-encoded JSON)
       dynamic jsonData;
@@ -132,9 +132,9 @@ class WebSocketService {
       } else if (message is List<int> || message is Uint8List) {
         jsonData = jsonDecode(utf8.decode(message));
       } else {
-        developer.log(
-          'WebSocketService: Unexpected message type: ${message.runtimeType}',
-        );
+        // developer.log(
+        //   'WebSocketService: Unexpected message type: ${message.runtimeType}',
+        // );
         return;
       }
 
@@ -143,26 +143,26 @@ class WebSocketService {
         try {
           jsonData = jsonDecode(jsonData);
         } catch (e) {
-          developer.log(
-            'WebSocketService: Error parsing double-encoded JSON: $e',
-          );
+          // developer.log(
+          //   'WebSocketService: Error parsing double-encoded JSON: $e',
+          // );
           return;
         }
       }
 
       // Ensure we have a valid Map
       if (jsonData is! Map<String, dynamic>) {
-        developer.log(
-          'WebSocketService: Invalid JSON structure: expected Map<String, dynamic>, got ${jsonData.runtimeType}',
-        );
+        // developer.log(
+        //   'WebSocketService: Invalid JSON structure: expected Map<String, dynamic>, got ${jsonData.runtimeType}',
+        // );
         return;
       }
 
       // Emit the parsed message
       _messageController.add(jsonData);
-    } catch (e, stackTrace) {
-      developer.log('WebSocketService: Error processing message: $e');
-      developer.log('WebSocketService: Stack trace: $stackTrace');
+    } catch (e) {
+      // developer.log('WebSocketService: Error processing message: $e');
+      // developer.log('WebSocketService: Stack trace: $stackTrace');
       _handleError('Message processing error: $e');
     }
   }
@@ -171,7 +171,7 @@ class WebSocketService {
   void _onDone() {
     if (_disposed) return;
 
-    developer.log('WebSocketService: Connection closed');
+    // developer.log('WebSocketService: Connection closed');
     _updateStatus(WebSocketStatus.disconnected);
     _scheduleReconnect();
   }
@@ -180,7 +180,7 @@ class WebSocketService {
   void _onError(error) {
     if (_disposed) return;
 
-    developer.log('WebSocketService: Connection error: $error');
+    // developer.log('WebSocketService: Connection error: $error');
     _handleError('Connection error: $error');
     _updateStatus(WebSocketStatus.error);
     _scheduleReconnect();
@@ -215,9 +215,9 @@ class WebSocketService {
       ),
     );
 
-    developer.log(
+    /* developer.log(
       'WebSocketService: Scheduling reconnect in ${delay.inMilliseconds}ms (attempt $_reconnectAttempts)',
-    );
+    ); */
 
     _reconnectTimer = Timer(delay, () {
       if (!_disposed && _status != WebSocketStatus.connected) {
@@ -239,6 +239,6 @@ class WebSocketService {
     _messageController.close();
     _errorController.close();
 
-    developer.log('WebSocketService: Disposed');
+    // developer.log('WebSocketService: Disposed');
   }
 }

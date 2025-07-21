@@ -243,7 +243,7 @@ class KYCService {
       final bbox = data['bbox'];
 
       if (!success) {
-        developer.log('Warning: Unable to detect ID');
+        // developer.log('Warning: Unable to detect ID');
         return <double>[]; // Return empty list instead of null
       }
 

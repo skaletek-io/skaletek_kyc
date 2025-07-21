@@ -65,7 +65,7 @@ class SkaletekKYC {
         onComplete(KYCResult.failure(status: KYCStatus.failure).toMap());
       }
     } catch (e) {
-      developer.log('SkaletekKYC: Error during verification: $e');
+      // developer.log('SkaletekKYC: Error during verification: $e');
       onComplete(KYCResult.failure(status: KYCStatus.failure).toMap());
     }
   }

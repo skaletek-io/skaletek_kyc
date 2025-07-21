@@ -178,7 +178,7 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
 
   /// Refresh the session by clearing presigned URL and fetching new ones
   Future<bool> _refreshSession() async {
-    developer.log('Session expired, refreshing presigned URL...');
+    // developer.log('Session expired, refreshing presigned URL...');
 
     await widget.kycService.stateProvider?.clearPresignedUrl();
     setState(() {
@@ -192,7 +192,7 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
       );
       return true;
     } catch (refreshError) {
-      developer.log('Failed to refresh presigned URL: $refreshError');
+      // developer.log('Failed to refresh presigned URL: $refreshError');
       widget.kycService.showSnackbar(
         'Failed to refresh session. Please try again.',
       );
@@ -217,13 +217,13 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
           _presignedUrl = presignedUrlFromState;
           _isLoading = false;
         });
-        developer.log('Presigned URL available from state');
+        // developer.log('Presigned URL available from state');
         return;
       }
 
       // Fetch new presigned URL from service
       final presignedUrl = await widget.kycService.getPresignedUrls();
-      developer.log('Presigned URL fetched successfully');
+      // developer.log('Presigned URL fetched successfully');
 
       setState(() {
         _presignedUrl = presignedUrl;
@@ -265,7 +265,7 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
           setDocument(imageFile);
         });
       } catch (e) {
-        developer.log('Failed to restore document image: $e');
+        // developer.log('Failed to restore document image: $e');
       }
     }
 
@@ -297,13 +297,13 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
       await _performDocumentUploads();
       await _markDocumentsAsUploaded();
 
-      developer.log('Documents uploaded successfully');
+      // developer.log('Documents uploaded successfully');
       widget.onNext?.call();
     } catch (e) {
       setState(() {
         _isUploading = false;
       });
-      developer.log('Upload failed: ${e.toString()}');
+      // developer.log('Upload failed: ${e.toString()}');
 
       final sessionRefreshed = await _handleError(
         e,
@@ -340,7 +340,7 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
   /// Ensure presigned URL is available
   Future<void> _ensurePresignedUrl() async {
     if (_presignedUrl == null) {
-      developer.log('No presigned URL, fetching...');
+      // developer.log('No presigned URL, fetching...');
       await _getPresignedUrls();
     }
 
@@ -354,18 +354,6 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
     final provider = widget.kycService.stateProvider;
     final uploadTasks = <Future<void>>[];
 
-    // Debug: Log presigned URL information
-    developer.log('Performing document uploads...');
-    developer.log('Presigned URL available: ${_presignedUrl != null}');
-    if (_presignedUrl != null) {
-      developer.log('Front URL: ${_presignedUrl!.front.url}');
-      developer.log('Back URL: ${_presignedUrl!.back.url}');
-    }
-    developer.log('Front document: ${_frontDocument?.path}');
-    developer.log('Back document: ${_backDocument?.path}');
-    developer.log('Front uploaded: ${provider?.frontDocumentUploaded}');
-    developer.log('Back uploaded: ${provider?.backDocumentUploaded}');
-
     // Helper function to add upload task if document needs uploading
     void addUploadTaskIfNeeded({
       required ImageFile? document,
@@ -375,10 +363,10 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
     }) {
       if (document != null && !isUploaded) {
         final file = File(document.path);
-        developer.log('Adding upload task for file: ${file.path}');
+        // developer.log('Adding upload task for file: ${file.path}');
         uploadTasks.add(uploadFunction(file, _presignedUrl!));
       } else if (document != null) {
-        developer.log('Document already uploaded, skipping...');
+        // developer.log('Document already uploaded, skipping...');
       }
     }
 
@@ -396,7 +384,7 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
       uploadFunction: widget.kycService.uploadBackDocument,
     );
 
-    developer.log('Total upload tasks: ${uploadTasks.length}');
+    // developer.log('Total upload tasks: ${uploadTasks.length}');
 
     if (uploadTasks.isNotEmpty) {
       await Future.wait(uploadTasks);

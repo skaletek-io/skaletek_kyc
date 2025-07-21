@@ -194,18 +194,16 @@ post_install do |installer|
   end
   
   # Skaletek KYC Auto Setup
-  setup_script_paths = [
-    'Pods/skaletek_kyc/skaletek_kyc_setup.rb',  # For published plugin
-    File.expand_path('~/.pub-cache/hosted/pub.dev/skaletek_kyc-*/ios/skaletek_kyc_setup.rb')  # Alternative pub cache path
-  ]
+  setup_script_paths = []
+  setup_script_paths << 'Pods/skaletek_kyc/skaletek_kyc_setup.rb' if File.exist?('Pods/skaletek_kyc/skaletek_kyc_setup.rb')
+  Dir.glob(File.expand_path('~/.pub-cache/hosted/pub.dev/skaletek_kyc-*/ios/skaletek_kyc_setup.rb')).each { |path| setup_script_paths << path }
   
-  setup_script_path = setup_script_paths.find { |path| File.exist?(path) }
-  
-  if setup_script_path
+  if setup_script_path = setup_script_paths.first
+    puts "✅ Skaletek KYC: Running iOS setup..."
     load setup_script_path
     SkaletekKYC.setup_ios_project
   else
-    puts "⚠️ Skaletek KYC setup script not found. Please ensure the plugin is installed."
+    puts "⚠️ Skaletek KYC: Setup script not found. Run 'flutter pub get' first."
   end
 end
 ```
