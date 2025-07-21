@@ -34,7 +34,6 @@ module SkaletekKYC
     # Perform setup
     setup_aws_integration(project_root, ios_runner_path)
     configure_app_delegate(app_delegate_path)
-    setup_camera_permissions(project_root)
     
     puts "✅ Skaletek KYC: iOS integration completed successfully!"
     puts "ℹ️ Next: Add Swift Package dependencies in Xcode (see README for details)"
@@ -134,27 +133,6 @@ module SkaletekKYC
     puts "ℹ️ Skaletek KYC: App initialization configured"
   end
   
-  def self.setup_camera_permissions(project_root)
-    info_plist_path = File.join(project_root, 'ios', 'Runner', 'Info.plist')
-    return unless File.exist?(info_plist_path)
-    
-    content = File.read(info_plist_path)
-    
-    # Check if camera permission already exists
-    return if content.include?('NSCameraUsageDescription')
-    
-    # Add camera permission before closing </dict>
-    camera_permission = <<~PLIST
-      	<key>NSCameraUsageDescription</key>
-      	<string>This app needs camera access for document scanning and face verification.</string>
-    PLIST
-    
-    # Insert before the closing </dict> tag
-    content.gsub!(/(\s*)<\/dict>\s*<\/plist>/, "#{camera_permission}\\1</dict>\n</plist>")
-    
-    File.write(info_plist_path, content)
-    puts "ℹ️ Skaletek KYC: Camera permissions configured"
-  end
 end
 
 # Auto-run if called directly (for testing)
