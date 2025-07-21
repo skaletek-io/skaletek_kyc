@@ -45,7 +45,6 @@ post_install do |installer|
   setup_script_paths = [
     'Pods/skaletek_kyc/skaletek_kyc_setup.rb',  # For published plugin
     File.expand_path('~/.pub-cache/hosted/pub.dev/skaletek_kyc-*/ios/skaletek_kyc_setup.rb'),  # Alternative pub cache path
-    File.join(File.dirname(__FILE__), '..', '..', 'ios', 'skaletek_kyc_setup.rb')  # Local development
   ]
   
   setup_script_path = setup_script_paths.find { |path| File.exist?(path) }
