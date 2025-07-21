@@ -1,6 +1,6 @@
 name: skaletek_kyc
 description: "A Flutter SDK for integrating Skaletek's eKYC verification services."
-version: 0.0.1-dev.2.1
+version: 0.0.1-dev.2.2
 homepage: https://docs.skaletek.io/ekyc/flutter-sdk/
 
 environment:
