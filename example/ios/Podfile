@@ -44,7 +44,8 @@ post_install do |installer|
   
   # Skaletek KYC Auto Setup
   setup_script_paths = []
-  setup_script_paths << 'Pods/skaletek_kyc/skaletek_kyc_setup.rb' if File.exist?('Pods/skaletek_kyc/skaletek_kyc_setup.rb')
+  setup_script_paths << '../../ios/skaletek_kyc_setup.rb' if File.exist?('../../ios/skaletek_kyc_setup.rb')
+  # setup_script_paths << 'Pods/skaletek_kyc/skaletek_kyc_setup.rb' if File.exist?('Pods/skaletek_kyc/skaletek_kyc_setup.rb')
   Dir.glob(File.expand_path('~/.pub-cache/hosted/pub.dev/skaletek_kyc-*/ios/skaletek_kyc_setup.rb')).each { |path| setup_script_paths << path }
   
   if setup_script_path = setup_script_paths.first

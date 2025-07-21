@@ -76,6 +76,7 @@ module SkaletekKYC
     end
     
     # Setup configuration files
+    copied_files = []
     config_count = 0
     ['amplifyconfiguration.json', 'awsconfiguration.json'].each do |config_file|
       source_file = File.join(source_path, config_file)
@@ -84,11 +85,79 @@ module SkaletekKYC
       next unless File.exist?(source_file)
       
       FileUtils.cp(source_file, target_file)
+      copied_files << config_file
       config_count += 1
     end
     
-    puts "ℹ️ Skaletek KYC: AWS services configured" if config_count > 0
+    # Add files to Xcode project to ensure they're included in the build
+    add_files_to_xcode_project(project_root, copied_files) if copied_files.any?
+    
+    puts "ℹ️ Skaletek KYC: AWS services configured (#{config_count} files)" if config_count > 0
     true
+  end
+  
+  def self.add_files_to_xcode_project(project_root, files_to_add)
+    begin
+      require 'xcodeproj'
+    rescue LoadError
+      puts "⚠️ Skaletek KYC: xcodeproj gem not available, files may need manual Xcode configuration"
+      puts "ℹ️ Install with: gem install xcodeproj"
+      return false
+    end
+    
+    project_path = File.join(project_root, 'ios', 'Runner.xcodeproj')
+    return false unless File.exist?(project_path)
+    
+    begin
+      project = Xcodeproj::Project.open(project_path)
+      runner_target = project.targets.find { |target| target.name == 'Runner' }
+      
+      unless runner_target
+        puts "⚠️ Skaletek KYC: Could not find Runner target in Xcode project"
+        return false
+      end
+      
+      runner_group = project.main_group['Runner']
+      unless runner_group
+        puts "⚠️ Skaletek KYC: Could not find Runner group in Xcode project"
+        return false
+      end
+      
+      files_added = 0
+      files_to_add.each do |file_name|
+        # Check if file reference already exists
+        existing_file = runner_group.children.find { |child| child.display_name == file_name }
+        
+        if existing_file
+          puts "ℹ️ Skaletek KYC: #{file_name} already exists in Xcode project"
+          next
+        end
+        
+        # Create file reference
+        file_ref = runner_group.new_reference(file_name)
+        
+        # Add to Copy Bundle Resources build phase
+        resources_phase = runner_target.resources_build_phase
+        build_file = resources_phase.add_file_reference(file_ref)
+        
+        if build_file
+          files_added += 1
+          puts "ℹ️ Skaletek KYC: Added #{file_name} to Xcode project"
+        end
+      end
+      
+      if files_added > 0
+        project.save
+        puts "✅ Skaletek KYC: Successfully updated Xcode project (#{files_added} files)"
+      end
+      
+      true
+    rescue => e
+      puts "⚠️ Skaletek KYC: Could not modify Xcode project: #{e.message}"
+      puts "ℹ️ Files copied but may need manual addition to Xcode project"
+      puts "ℹ️ Manually add the JSON files to your Runner target in Xcode"
+      false
+    end
   end
   
   def self.configure_app_delegate(app_delegate_path)
@@ -130,7 +199,25 @@ module SkaletekKYC
     end
     
     File.write(app_delegate_path, content)
-    puts "ℹ️ Skaletek KYC: App initialization configured"
+    puts "✅ Skaletek KYC: App initialization configured"
+  end
+  
+  # Utility method to validate setup
+  def self.validate_setup(project_root)
+    ios_runner_path = File.join(project_root, 'ios', 'Runner')
+    required_files = ['amplifyconfiguration.json', 'awsconfiguration.json']
+    
+    missing_files = required_files.reject do |file|
+      File.exist?(File.join(ios_runner_path, file))
+    end
+    
+    if missing_files.empty?
+      puts "✅ Skaletek KYC: All configuration files present"
+      true
+    else
+      puts "⚠️ Skaletek KYC: Missing configuration files: #{missing_files.join(', ')}"
+      false
+    end
   end
   
 end
@@ -138,4 +225,4 @@ end
 # Auto-run if called directly (for testing)
 if __FILE__ == $0
   SkaletekKYC.setup_ios_project
-end 
+end

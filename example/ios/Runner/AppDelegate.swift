@@ -18,6 +18,7 @@ do {
   print("⚠️ Could not initialize Amplify for Skaletek KYC: \(error)")
 }
 
+    
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
