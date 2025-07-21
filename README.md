@@ -1,8 +1,5 @@
 # Skaletek KYC Flutter Plugin
 
-[![pub package](https://img.shields.io/pub/v/skaletek_kyc.svg)](https://pub.dev/packages/skaletek_kyc)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 A comprehensive Flutter plugin for **Know Your Customer (KYC) verification** services, featuring document scanning, face liveness detection, and identity verification powered by AWS Amplify.
 
 ## ✨ Features
@@ -482,19 +479,3 @@ class KYCVerificationScreen extends StatelessWidget {
 - Verify camera permissions are granted
 - Check network connectivity for AWS services
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Support
-
-For support and questions:
-
-- **Email:** [support@skaletek.io](mailto:support@skaletek.io)
-- **Documentation:** [docs.skaletek.io](https://docs.skaletek.io)
-- **Issues:** [GitHub Issues](https://github.com/skaletek-io/skaletek_kyc/issues)
-- **Website:** [skaletek.io](https://skaletek.io)
-
----
-
-**Made with ❤️ by the Skaletek team** 
