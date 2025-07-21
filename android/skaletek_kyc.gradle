@@ -3,56 +3,53 @@
 
 task configureKYCIntegration {
     doLast {
-        // Multiple strategies to locate plugin resources
         def sourceFile = null
-        def attempts = [
-            // Strategy 1: Look in .pub-cache for published plugin
-            "${System.getProperty('user.home')}/.pub-cache/hosted/pub.dev/skaletek_kyc-*/assets/amplifyconfiguration.json",
-            // Strategy 2: Local development (plugin in parent directory)
-            "${project.rootDir}/../assets/amplifyconfiguration.json",
-            // Strategy 3: Local development (plugin as dependency)
-            "${project.rootDir}/../../assets/amplifyconfiguration.json",
-            // Strategy 4: Check if user has placed it manually in assets
-            "${project.rootDir}/assets/amplifyconfiguration.json"
-        ]
+        def pubCacheDir = file("${System.getProperty('user.home')}/.pub-cache/hosted/pub.dev")
         
-        for (String path : attempts) {
-            def candidate = file(path)
-            if (candidate.exists()) {
-                sourceFile = candidate
-                break
-            }
-        }
-        
-        if (!sourceFile) {
-            // Try to find using glob pattern for .pub-cache
-            def pubCacheDir = file("${System.getProperty('user.home')}/.pub-cache/hosted/pub.dev")
-            if (pubCacheDir.exists()) {
-                pubCacheDir.listFiles().each { dir ->
-                    if (dir.name.startsWith('skaletek_kyc-')) {
-                        def configFile = file("${dir.absolutePath}/assets/amplifyconfiguration.json")
-                        if (configFile.exists()) {
-                            sourceFile = configFile
-                            return true // break from closure
-                        }
+        // Look for the plugin in pub cache
+        if (pubCacheDir.exists()) {
+            pubCacheDir.listFiles().each { dir ->
+                if (dir.name.startsWith('skaletek_kyc-') && dir.isDirectory()) {
+                    def configFile = file("${dir.absolutePath}/assets/amplifyconfiguration.json")
+                    if (configFile.exists()) {
+                        sourceFile = configFile
+                        return true // break from closure
                     }
                 }
             }
         }
         
+        // Fallback: check local development paths
+        if (!sourceFile) {
+            def localPaths = [
+                "${project.rootDir}/../assets/amplifyconfiguration.json",
+                "${project.rootDir}/../../assets/amplifyconfiguration.json"
+            ]
+            
+            for (String path : localPaths) {
+                def candidate = file(path)
+                if (candidate.exists()) {
+                    sourceFile = candidate
+                    break
+                }
+            }
+        }
+        
         def targetDir = file("app/src/main/res/raw")
-        def targetFile = file("${targetDir.absolutePath}/amplifyconfiguration.json")
         
         if (sourceFile && sourceFile.exists()) {
             targetDir.mkdirs()
             copy {
                 from sourceFile
                 into targetDir
+                rename { "amplifyconfiguration.json" }
             }
             println "✅ Skaletek KYC: Android integration configured successfully"
+            println "   Source: ${sourceFile.absolutePath}"
         } else {
-            println "⚠️ Skaletek KYC: Unable to configure Android integration"
-            println "   Please ensure the plugin is properly installed"
+            println "⚠️ Skaletek KYC: amplifyconfiguration.json not found"
+            println "   Make sure the skaletek_kyc package is added to your pubspec.yaml"
+            println "   and run 'flutter pub get' first"
         }
     }
 }

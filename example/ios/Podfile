@@ -1,5 +1,5 @@
 # Uncomment this line to define a global platform for your project
-platform :ios, '14.0'
+# platform :ios, '12.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -39,20 +39,5 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
-  end
-  
-  # Skaletek KYC Auto Setup
-  setup_script_paths = [
-    'Pods/skaletek_kyc/skaletek_kyc_setup.rb',  # For published plugin
-    File.expand_path('~/.pub-cache/hosted/pub.dev/skaletek_kyc-*/ios/skaletek_kyc_setup.rb'),  # Alternative pub cache path
-  ]
-  
-  setup_script_path = setup_script_paths.find { |path| File.exist?(path) }
-  
-  if setup_script_path
-    load setup_script_path
-    SkaletekKYC.setup_ios_project
-  else
-    puts "⚠️ Skaletek KYC setup script not found. Please ensure the plugin is installed."
   end
 end

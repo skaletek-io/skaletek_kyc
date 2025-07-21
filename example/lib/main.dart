@@ -8,25 +8,26 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Skaletek KYC Demo',
+      title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const DemoApp(),
+      home: const HomeScreen(),
     );
   }
 }
 
-class DemoApp extends StatefulWidget {
-  const DemoApp({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
   @override
-  State<DemoApp> createState() => _DemoAppState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _DemoAppState extends State<DemoApp> {
+class _HomeScreenState extends State<HomeScreen> {
   bool _isVerifying = false;
   String _status = '';
   bool _hasVerificationResult = false;
@@ -39,21 +40,22 @@ class _DemoAppState extends State<DemoApp> {
     });
 
     final userInfo = KYCUserInfo(
-      firstName: "Whyte",
-      lastName: "Peter",
+      firstName: "David",
+      lastName: "Omale",
       documentType: DocumentType.passport.value,
       issuingCountry: "USA",
     );
     final customization = KYCCustomization(
       docSrc: DocumentSource.file.value,
       logoUrl: null,
-      partnerName: "My Company",
+      partnerName: "YouTube",
       primaryColor: null,
     );
 
     SkaletekKYC.instance.startVerification(
       context: context,
-      token: "your-token-here",
+      token: "039cfd771d204bafb1ea47da0cc06164",
+      // token: "a1f2bbdde4974ad9808f9a748c09ed3d",
       userInfo: userInfo,
       customization: customization,
       onComplete: (result) {

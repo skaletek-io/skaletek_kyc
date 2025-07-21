@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    id("org.jetbrains.kotlin.plugin.compose") 
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -8,20 +9,20 @@ plugins {
 android {
     namespace = "com.example.example"
     compileSdk = 35
-    ndkVersion = "27.0.12077973"
+     ndkVersion = "27.0.12077973"
 
-    buildFeatures {
+      buildFeatures {
         compose = true
     }
 
-    composeOptions {
+      composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-        isCoreLibraryDesugaringEnabled = true
+         isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -53,7 +54,7 @@ flutter {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
      // Add these Compose dependencies
     implementation("androidx.compose.ui:ui:1.6.7")
@@ -61,29 +62,20 @@ dependencies {
     implementation("androidx.compose.runtime:runtime:1.6.7")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    
+
     // AWS Amplify Face Liveness SDK
     implementation("com.amplifyframework.ui:liveness:1.4.0")
     implementation("com.amplifyframework:core:2.27.0")
     implementation("com.amplifyframework:aws-auth-cognito:2.27.0")
 }
 
-// Automated configuration copying
-tasks.register('copyAmplifyConfig') {
-    doLast {
-        def sourceFile = file('../../../assets/amplifyconfiguration.json')
-        def targetDir = file('src/main/res/raw')
-        
-        if (sourceFile.exists()) {
-            targetDir.mkdirs()
-            sourceFile.copyTo(file("${targetDir.path}/amplifyconfiguration.json"), overwrite: true)
-            println '✅ AWS Amplify configuration copied'
-        } else {
-            println '⚠️ amplifyconfiguration.json not found'
-        }
+// Skaletek KYC Android Setup
+apply {
+    val pubCacheDir = file("${System.getProperty("user.home")}/.pub-cache/hosted/pub.dev")
+    val setupScript = pubCacheDir.listFiles()?.find { it.name.startsWith("skaletek_kyc-") }
+        ?.let { file("${it.absolutePath}/android/skaletek_kyc.gradle") }
+    
+    if (setupScript?.exists() == true) {
+        from(setupScript)
     }
-}
-
-tasks.named('preBuild') {
-    dependsOn 'copyAmplifyConfig'
 }

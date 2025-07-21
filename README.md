@@ -42,35 +42,31 @@ Android setup includes automated AWS Amplify configuration with some manual buil
 
 ```gradle
 buildscript {
-    ext.kotlin_version = '2.0.0'
-    ext.compose_version = '1.6.7'
-    ext.compose_compiler_version = '1.5.14'
+    extra.apply {
+        set("kotlin_version", "2.0.0")
+        set("compose_version", "1.6.7")
+        set("compose_compiler_version", "1.5.14")
+    }
     
     repositories {
         google()
         mavenCentral()
+         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
     
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.3.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.0.0"
+        classpath("com.android.tools.build:gradle:8.3.2")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
+        classpath("org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.0.0")
     }
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven { url "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
-    }
-}
 
-// Apply Compose plugin for face liveness detection
+// Apply Compose plugin only to the face_liveness_detector project
 subprojects {
     afterEvaluate {
         if (project.name == "app" || project.name == "face_liveness_detector") {
-            apply plugin: "org.jetbrains.kotlin.plugin.compose"
+            apply(plugin = "org.jetbrains.kotlin.plugin.compose")
         }
     }
 }
@@ -79,9 +75,14 @@ subprojects {
 #### 1.2. Update `android/app/build.gradle` (App Level)
 
 ```gradle
+
+plugins {
+  id("org.jetbrains.kotlin.plugin.compose") 
+}
+
 android {
-    compileSdk 35
-    ndkVersion "27.0.12077973"
+    compileSdk = 35
+    ndkVersion = "27.0.12077973"
 
     buildFeatures {
         compose = true
@@ -92,55 +93,45 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-        coreLibraryDesugaringEnabled true
+       ...
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = '11'
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     defaultConfig {
-        minSdk 24
+        minSdk = 24
         // ... your other configurations
     }
 }
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
-    
-    // Jetpack Compose (required for face liveness UI)
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.material:material:$compose_version"
-    implementation "androidx.compose.runtime:runtime:$compose_version"
-    implementation "androidx.activity:activity-compose:1.8.2"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0"
+     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
+     // Add these Compose dependencies
+    implementation("androidx.compose.ui:ui:1.6.7")
+    implementation("androidx.compose.material:material:1.6.7")
+    implementation("androidx.compose.runtime:runtime:1.6.7")
+    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
     // AWS Amplify Face Liveness SDK
-    implementation 'com.amplifyframework.ui:liveness:1.4.0'
-    implementation 'com.amplifyframework:core:2.27.0'
-    implementation 'com.amplifyframework:aws-auth-cognito:2.27.0'
+    implementation("com.amplifyframework.ui:liveness:1.4.0")
+    implementation("com.amplifyframework:core:2.27.0")
+    implementation("com.amplifyframework:aws-auth-cognito:2.27.0")
 }
 
-// Automated configuration copying
-tasks.register('copyAmplifyConfig') {
-    doLast {
-        def sourceFile = file('../../../assets/amplifyconfiguration.json')
-        def targetDir = file('src/main/res/raw')
-        
-        if (sourceFile.exists()) {
-            targetDir.mkdirs()
-            sourceFile.copyTo(file("${targetDir.path}/amplifyconfiguration.json"), overwrite: true)
-            println '✅ AWS Amplify configuration copied'
-        } else {
-            println '⚠️ amplifyconfiguration.json not found'
-        }
+
+apply {
+    val pubCacheDir = file("${System.getProperty("user.home")}/.pub-cache/hosted/pub.dev")
+    val setupScript = pubCacheDir.listFiles()?.find { it.name.startsWith("skaletek_kyc-") }
+        ?.let { file("${it.absolutePath}/android/skaletek_kyc.gradle") }
+    
+    if (setupScript?.exists() == true) {
+        from(setupScript)
     }
-}
-
-tasks.named('preBuild') {
-    dependsOn 'copyAmplifyConfig'
 }
 ```
 
