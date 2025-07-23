@@ -31,6 +31,7 @@ class WebSocketService {
   bool _disposed = false;
   int _reconnectAttempts = 0;
   WebSocketStatus _status = WebSocketStatus.disconnected;
+  String _socketUrl = 'wss://ml.dev.skaletek.io/detection/ws'; // Default to dev
 
   // Stream controllers
   final _statusController = StreamController<WebSocketStatus>.broadcast();
@@ -54,6 +55,11 @@ class WebSocketService {
 
   /// Whether the service is currently connecting
   bool get isConnecting => _status == WebSocketStatus.connecting;
+
+  /// Set the environment for the WebSocket URL
+  void setEnvironment(String environment) {
+    _socketUrl = AppConfig.getMlSocketUrl(environment);
+  }
 
   /// Connect to the WebSocket server
   void connect() {
@@ -91,11 +97,11 @@ class WebSocketService {
   void _openSocket() {
     if (_disposed) return;
 
-    // developer.log('WebSocketService: Connecting to ${AppConfig.mlSocketUrl}');
+    // developer.log('WebSocketService: Connecting to $_socketUrl');
 
     try {
       _channel = WebSocketChannel.connect(
-        Uri.parse(AppConfig.mlSocketUrl),
+        Uri.parse(_socketUrl),
         protocols: ['binary'], // Optimize for binary data
       );
 

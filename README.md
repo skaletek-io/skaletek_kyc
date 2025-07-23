@@ -81,7 +81,7 @@ plugins {
 
 android {
     compileSdk = 35
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "27.0.12077973" //this is required by our sdk
 
     buildFeatures {
         compose = true
@@ -282,6 +282,39 @@ final customization = KYCCustomization(
 | `DocumentSource.camera` | Live camera capture with auto-detection |
 | `DocumentSource.file` | File upload from device gallery |
 
+### 🌐 Environment Configuration
+
+You can now specify the environment for the KYC verification process. This controls which backend endpoints are used for the session.
+
+#### Supported Environments
+
+- `SkaletekEnvironment.dev`
+- `SkaletekEnvironment.prod`
+- `SkaletekEnvironment.sandbox`
+
+#### Usage
+
+```dart
+SkaletekKYC.instance.startVerification(
+  context: context,
+  token: "your-token-here",
+  userInfo: userInfo,
+  customization: customization,
+  environment: SkaletekEnvironment.prod, // or .dev, .sandbox
+  onComplete: (result) {
+    // Handle result
+  },
+);
+```
+
+- If you do not specify the `environment` parameter, it defaults to `SkaletekEnvironment.dev`.
+
+**Note:**  
+- The environment parameter is available in the `KYCConfig` and is passed through the SDK automatically.
+- The correct API endpoints are selected internally based on the environment you choose.
+
+---
+
 ### Complete Example
 
 ```dart
@@ -343,6 +376,7 @@ class _DemoAppState extends State<DemoApp> {
       token: "your-token-here",
       userInfo: userInfo,
       customization: customization,
+      environment: SkaletekEnvironment.prod, // or .dev, .sandbox
       onComplete: (result) {
         setState(() {
           _isVerifying = false;
@@ -351,7 +385,7 @@ class _DemoAppState extends State<DemoApp> {
             _status = 'Verification completed successfully!';
           } else {
             _status =
-                'Verification failed:  {result['status'] ?? 'Unknown error'}';
+                'Verification failed:  ${result['status'] ?? 'Unknown error'}';
           }
         });
       },
@@ -450,6 +484,8 @@ class _DemoAppState extends State<DemoApp> {
 - Ensure Kotlin version is 2.0.0+
 - Verify Compose dependencies are correctly added
 - Check that `minSdk` is set to 24 or higher
+- Check that `compileSdk` is set to 35 or higher
+- Check that `ndkVersion` is set "27.0.12077973"
 
 **iOS Build Errors:**
 - Confirm Swift Package Manager dependencies are added

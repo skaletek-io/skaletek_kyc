@@ -38,7 +38,7 @@ class KYCCustomization {
 
   factory KYCCustomization.fromMap(Map<String, dynamic> map) {
     return KYCCustomization(
-      docSrc: map['doc_src'] ?? 'LIVE',
+      docSrc: map['doc_src'] ?? DocumentSource.live.value,
       logoUrl: map['logo_url'],
       logoWidth: map['logo_width'],
       logoHeight: map['logo_height'],

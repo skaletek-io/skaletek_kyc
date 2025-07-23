@@ -22,12 +22,14 @@ class SkaletekKYC {
   /// [token] - Authentication token for the verification session
   /// [userInfo] - User information model
   /// [customization] - UI customization model
+  /// [environment] - Environment configuration (dev, prod, sandbox) - defaults to dev
   /// [onComplete] - Callback called with the result as a Map
   Future<void> startVerification({
     required BuildContext context,
     required String token,
     required KYCUserInfo userInfo,
     required KYCCustomization customization,
+    SkaletekEnvironment environment = SkaletekEnvironment.dev,
     required Function(Map<String, dynamic> result) onComplete,
   }) async {
     try {
@@ -37,6 +39,7 @@ class SkaletekKYC {
         token: token,
         userInfo: userInfo,
         customization: customization,
+        environment: environment,
       );
       await resetKYCState();
 

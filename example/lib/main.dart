@@ -56,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
       token: "your-token-here",
       userInfo: userInfo,
       customization: customization,
+      environment: SkaletekEnvironment.dev,
       onComplete: (result) {
         setState(() {
           _isVerifying = false;

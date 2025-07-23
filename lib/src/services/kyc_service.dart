@@ -11,8 +11,8 @@ import 'error_handler_service.dart';
 import 'dart:developer' as developer;
 
 class KYCService {
-  static const String _baseUrl = AppConfig.kycApiUrl;
-  static const String _mlBaseUrl = AppConfig.mlApiUrl;
+  late final String _baseUrl;
+  late final String _mlBaseUrl;
 
   KYCConfig? _config;
   KYCStateProvider? _stateProvider;
@@ -67,6 +67,10 @@ class KYCService {
     _stateProvider = stateProvider;
     _onComplete = onComplete;
     _onShowSnackbar = onShowSnackbar;
+
+    // Set URLs based on environment
+    _baseUrl = AppConfig.getKycApiUrl(config.environment.value);
+    _mlBaseUrl = AppConfig.getMlApiUrl(config.environment.value);
 
     // Save session token to global state
     if (_stateProvider != null) {
