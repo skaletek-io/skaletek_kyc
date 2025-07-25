@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'models/kyc_config.dart';
+import 'config/app_config.dart';
 import 'models/kyc_result.dart';
 import 'models/kyc_user_info.dart';
 import 'models/kyc_customization.dart';

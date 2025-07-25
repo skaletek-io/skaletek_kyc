@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skaletek_kyc/src/config/app_config.dart';
 import 'package:skaletek_kyc/src/ui/core/kyc_document_upload.dart';
 import 'package:skaletek_kyc/src/ui/core/kyc_face_verification.dart';
 import 'package:skaletek_kyc/src/ui/layout/body.dart';
 import 'package:skaletek_kyc/src/ui/shared/app_color.dart';
 import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
 import 'package:skaletek_kyc/src/services/kyc_service.dart';
-import 'package:skaletek_kyc/src/models/kyc_config.dart';
 import 'package:skaletek_kyc/src/models/kyc_result.dart';
 import 'package:skaletek_kyc/src/services/kyc_state_provider.dart';
 import 'layout/header.dart';
