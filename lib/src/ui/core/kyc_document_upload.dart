@@ -36,7 +36,7 @@ import 'package:skaletek_kyc/src/ui/layout/content.dart';
 import 'package:skaletek_kyc/src/ui/shared/button.dart';
 import 'package:skaletek_kyc/src/ui/shared/file_input.dart';
 import 'package:skaletek_kyc/src/ui/shared/typography.dart';
-import 'dart:developer' as developer;
+//import 'dart:developer' as developer;
 
 /// Document types that require both front and back sides for verification
 const Set<String> _documentTypesWithBackView = {

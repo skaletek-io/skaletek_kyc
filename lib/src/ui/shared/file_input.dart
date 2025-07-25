@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:skaletek_kyc/src/services/kyc_service.dart';
 import 'package:skaletek_kyc/src/utils/image_cropper.dart';
 import 'app_color.dart';
-import 'dart:developer' as developer;
+//import 'dart:developer' as developer;
 
 class ImageFile {
   final String name;
