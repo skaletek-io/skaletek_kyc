@@ -1,3 +1,8 @@
+## 0.0.1-dev.2.6
+
+**Added**: Environment support to Skaletek KYC for improved configuration flexibility.
+
+---
 ## 0.0.1-dev.1
 
 **Initial Release** - Complete KYC verification solution for Flutter applications.

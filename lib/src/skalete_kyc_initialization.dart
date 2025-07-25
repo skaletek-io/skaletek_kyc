@@ -7,7 +7,7 @@ import 'models/kyc_customization.dart';
 import 'services/kyc_state_provider.dart';
 import 'ui/kyc_verification_screen.dart';
 import 'ui/shared/app_color.dart';
-import 'dart:developer' as developer;
+// import 'dart:developer' as developer;
 
 class SkaletekKYC {
   SkaletekKYC._internal();
