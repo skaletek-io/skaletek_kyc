@@ -24,6 +24,7 @@ class KYCVerificationScreen extends StatefulWidget {
 class _KYCVerificationScreenState extends State<KYCVerificationScreen> {
   KYCStep currentStep = KYCStep.document;
   final KYCService _kycService = KYCService();
+  bool _isServiceInitialized = false; // Add initialization tracking
 
   @override
   void initState() {
@@ -76,6 +77,13 @@ class _KYCVerificationScreenState extends State<KYCVerificationScreen> {
           }
         },
       );
+
+      // Mark service as initialized and trigger rebuild
+      if (mounted) {
+        setState(() {
+          _isServiceInitialized = true;
+        });
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -102,6 +110,15 @@ class _KYCVerificationScreenState extends State<KYCVerificationScreen> {
   }
 
   Widget _getCurrentStepWidget() {
+    // Only create widgets after service is initialized
+    if (!_isServiceInitialized) {
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(AppColor.primary),
+        ),
+      );
+    }
+
     switch (currentStep) {
       case KYCStep.document:
         return KYCDocumentUpload(
