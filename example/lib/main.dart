@@ -39,16 +39,16 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     final userInfo = KYCUserInfo(
-      firstName: "David",
-      lastName: "Omale",
+      firstName: "Whyte",
+      lastName: "Peter",
       documentType: DocumentType.passport.value,
       issuingCountry: "USA",
     );
     final customization = KYCCustomization(
       docSrc: DocumentSource.file.value,
       logoUrl: null,
-      partnerName: "YouTube",
-      primaryColor: '#126DD6',
+      partnerName: "Your Company",
+      primaryColor: null,
     );
 
     SkaletekKYC.instance.startVerification(

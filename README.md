@@ -183,7 +183,6 @@ platform :ios, '14.0'
 IPHONEOS_DEPLOYMENT_TARGET = 14.0
 ```
 
-
 ### Step 2: Automated iOS Setup (One-time Podfile Update)
 
 Add this **automation block** to your `ios/Podfile` in the `post_install` hook:
