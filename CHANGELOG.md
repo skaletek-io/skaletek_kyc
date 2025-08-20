@@ -1,4 +1,13 @@
 
+## 0.0.2
+
+**Bug Fix Release** - Fixed SvgPicture.network compilation error.
+
+### 🐛 Bug Fixes
+* **Logo Component**: Fixed `errorBuilder` parameter issue in `SvgPicture.network` that was causing compilation errors in Flutter SDK 3.8.1+
+
+---
+
 ## 0.0.1
 
 **Initial Release** - Complete KYC verification solution for Flutter applications.
