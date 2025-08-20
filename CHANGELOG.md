@@ -32,3 +32,6 @@
 * Automated platform setup with minimal manual configuration
 * Comprehensive README with step-by-step integration guides
 * Example app demonstrating all plugin features
+
+### 🐛 Bug Fixes
+* **Logo Component**: Fixed `errorBuilder` parameter issue in `SvgPicture.network` that was causing compilation errors in Flutter SDK 3.8.1+

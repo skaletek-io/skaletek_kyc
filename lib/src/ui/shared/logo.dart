@@ -38,7 +38,6 @@ class KYCLogo extends StatelessWidget {
             placeholderBuilder: (context) => _buildLocalLogo(),
             width: width,
             height: height,
-            errorBuilder: (context, error, stackTrace) => _buildLocalLogo(),
           ),
         ),
       );
