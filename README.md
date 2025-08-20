@@ -76,6 +76,7 @@ subprojects {
 ```gradle
 
 plugins {
+   //...
   id("org.jetbrains.kotlin.plugin.compose") 
 }
 
@@ -92,6 +93,7 @@ android {
     }
 
     compileOptions {
+        //...
         isCoreLibraryDesugaringEnabled = true
     }
 
