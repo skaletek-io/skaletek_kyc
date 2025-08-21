@@ -1,4 +1,15 @@
 
+## 0.0.3
+
+**Bug Fix Release** - Various improvements and fixes.
+
+### 🐛 Bug Fixes
+* **Android**: Fixed build issues with release configurations
+* **UI**: Fixed text overflow and layout overlapping issues
+* **General**: Various minor bug fixes and improvements
+
+---
+
 ## 0.0.2
 
 **Bug Fix Release** - Fixed SvgPicture.network compilation error.

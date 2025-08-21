@@ -20,7 +20,7 @@ Add the dependency to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  skaletek_kyc: ^0.0.2
+  skaletek_kyc: ^0.0.3
 ```
 
 Run:
@@ -33,7 +33,7 @@ flutter pub get
 ## 📱 Android Setup
 
 ### Overview
-Android setup includes automated AWS Amplify configuration with some manual build configuration required.
+Android setup includes automated AWS Amplify configuration and ProGuard rules management. The plugin automatically copies necessary configuration files and provides helpful setup guidance.
 
 ### Step 1: Update Project Build Configuration
 
