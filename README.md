@@ -20,7 +20,7 @@ Add the dependency to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  skaletek_kyc: ^0.0.1
+  skaletek_kyc: ^0.0.2
 ```
 
 Run:
