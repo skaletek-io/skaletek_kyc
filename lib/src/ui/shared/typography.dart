@@ -8,11 +8,16 @@ class StyledText extends StatelessWidget {
     super.key,
     this.style,
     this.textAlign = TextAlign.left,
+    this.overflow,
+    this.maxLines,
   });
 
   final String text;
   final TextStyle? style;
   final TextAlign? textAlign;
+  final TextOverflow? overflow;
+  final int? maxLines;
+
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -23,15 +28,25 @@ class StyledText extends StatelessWidget {
         color: AppColor.textLight,
       ).merge(style),
       textAlign: textAlign,
+      overflow: overflow,
+      maxLines: maxLines,
     );
   }
 }
 
 class StyledTitle extends StatelessWidget {
-  const StyledTitle(this.text, {super.key, this.style});
+  const StyledTitle(
+    this.text, {
+    super.key,
+    this.style,
+    this.overflow,
+    this.maxLines,
+  });
 
   final String text;
   final TextStyle? style;
+  final TextOverflow? overflow;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +57,8 @@ class StyledTitle extends StatelessWidget {
         fontSize: 14,
         color: AppColor.text,
       ).merge(style),
+      overflow: overflow,
+      maxLines: maxLines,
     );
   }
 }

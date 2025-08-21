@@ -69,22 +69,28 @@ class KYCContent extends StatelessWidget {
       padding: EdgeInsets.all(14),
       child: Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              StyledTitle(
-                step == KYCStep.document
-                    ? _getGreetingText()
-                    : 'Photosensitivity Warning',
-              ),
-              StyledText(
-                step == KYCStep.document
-                    ? 'Get ready to upload your ID'
-                    : 'We will require you have a working camera.',
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                StyledTitle(
+                  step == KYCStep.document
+                      ? _getGreetingText()
+                      : 'Photosensitivity Warning',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                StyledText(
+                  step == KYCStep.document
+                      ? 'Get ready to upload your ID'
+                      : 'We will require you have a working camera.',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+              ],
+            ),
           ),
-          Spacer(),
+          SizedBox(width: 8),
           Image.asset(
             step == KYCStep.document
                 ? 'packages/skaletek_kyc/assets/images/fancy-arrow.png'
