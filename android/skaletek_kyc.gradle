@@ -4,6 +4,7 @@
 task configureKYCIntegration {
     doLast {
         def sourceFile = null
+        def proguardSourceFile = null
         def pubCacheDir = file("${System.getProperty('user.home')}/.pub-cache/hosted/pub.dev")
         
         // Look for the plugin in pub cache
@@ -11,8 +12,16 @@ task configureKYCIntegration {
             pubCacheDir.listFiles().each { dir ->
                 if (dir.name.startsWith('skaletek_kyc-') && dir.isDirectory()) {
                     def configFile = file("${dir.absolutePath}/assets/amplifyconfiguration.json")
+                    def proguardFile = file("${dir.absolutePath}/android/skaletek-proguard-rules.pro")
+                    
                     if (configFile.exists()) {
                         sourceFile = configFile
+                    }
+                    if (proguardFile.exists()) {
+                        proguardSourceFile = proguardFile
+                    }
+                    
+                    if (sourceFile && proguardSourceFile) {
                         return true // break from closure
                     }
                 }
@@ -20,32 +29,107 @@ task configureKYCIntegration {
         }
         
         // Fallback: check local development paths
-        if (!sourceFile) {
+        if (!sourceFile || !proguardSourceFile) {
             def localPaths = [
-                "${project.rootDir}/../assets/amplifyconfiguration.json",
-                "${project.rootDir}/../../assets/amplifyconfiguration.json"
+                "${project.rootDir}/../",
+                "${project.rootDir}/../../"
             ]
             
-            for (String path : localPaths) {
-                def candidate = file(path)
-                if (candidate.exists()) {
-                    sourceFile = candidate
+            for (String basePath : localPaths) {
+                if (!sourceFile) {
+                    def configCandidate = file("${basePath}assets/amplifyconfiguration.json")
+                    if (configCandidate.exists()) {
+                        sourceFile = configCandidate
+                    }
+                }
+                
+                if (!proguardSourceFile) {
+                    def proguardCandidate = file("${basePath}android/skaletek-proguard-rules.pro")
+                    if (proguardCandidate.exists()) {
+                        proguardSourceFile = proguardCandidate
+                    }
+                }
+                
+                if (sourceFile && proguardSourceFile) {
                     break
                 }
             }
         }
         
-        // Simple target directory - always relative to current project
-        // Since this script is applied to the app module, we're already in the right context
-        def targetDir = file("src/main/res/raw")
+        // Target directories
+        def rawTargetDir = file("src/main/res/raw")
+        def appDir = file(".")
         
+        // Copy amplifyconfiguration.json
         if (sourceFile && sourceFile.exists()) {
-            targetDir.mkdirs()
-            def targetFile = new File(targetDir, "amplifyconfiguration.json")
+            rawTargetDir.mkdirs()
+            def targetFile = new File(rawTargetDir, "amplifyconfiguration.json")
             targetFile.text = sourceFile.text
-            println "✅ Skaletek KYC: Android integration configured successfully"
+            // println "✅ Skaletek KYC: amplifyconfiguration.json copied successfully"
         } else {
             println "⚠️ Skaletek KYC: amplifyconfiguration.json not found"
+        }
+        
+        // Copy ProGuard rules
+        if (proguardSourceFile && proguardSourceFile.exists()) {
+            def proguardTargetFile = new File(appDir, "skaletek-proguard-rules.pro")
+            proguardTargetFile.text = proguardSourceFile.text
+            // println "✅ Skaletek KYC: ProGuard rules copied successfully"
+            
+            // Check if proguard rules are configured in build.gradle
+            def buildGradleFile = new File(appDir, "build.gradle")
+            def buildGradleKtsFile = new File(appDir, "build.gradle.kts")
+            def targetBuildFile = null
+            
+            if (buildGradleKtsFile.exists()) {
+                targetBuildFile = buildGradleKtsFile
+            } else if (buildGradleFile.exists()) {
+                targetBuildFile = buildGradleFile
+            }
+            
+            if (targetBuildFile) {
+                def buildContent = targetBuildFile.text
+                def proguardRulePattern = /proguardFiles.*skaletek-proguard-rules\.pro/
+                
+                if (!buildContent.matches(/(?s).*skaletek-proguard-rules\.pro.*/)) {
+                    println "⚠️ Skaletek KYC: Please add ProGuard rules to your build.gradle(.kts):"
+                    if (targetBuildFile.name.endsWith('.kts')) {
+                        println """
+                        Add this to your release buildType:
+                        buildTypes {
+                            release {
+                                proguardFiles(
+                                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                                    "proguard-rules.pro",
+                                    "skaletek-proguard-rules.pro"
+                                )
+                                isMinifyEnabled = true
+                            }
+                        }
+                        """
+                    } else {
+                        println """
+                        Add this to your release buildType:
+                        buildTypes {
+                            release {
+                                proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', 'skaletek-proguard-rules.pro'
+                                minifyEnabled true
+                            }
+                        }
+                        """
+                    }
+                } else {
+                    println "✅ Skaletek KYC: ProGuard rules configuration detected"
+                }
+            }
+        } else {
+            println "⚠️ Skaletek KYC: ProGuard rules file not found"
+        }
+        
+        if (sourceFile || proguardSourceFile) {
+            println "✅ Skaletek KYC: Android integration configured successfully"
+        } else {
+            println "⚠️ Skaletek KYC: Configuration incomplete"
             println "   Make sure the skaletek_kyc package is added to your pubspec.yaml"
             println "   and run 'flutter pub get' first"
         }
