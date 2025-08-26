@@ -1,3 +1,5 @@
+## 0.0.4
+**Cross-Platform Compatibility Release** - Enhanced Windows support and bug fixes.
 
 ## 0.0.3
 

@@ -5,26 +5,41 @@ task configureKYCIntegration {
     doLast {
         def sourceFile = null
         def proguardSourceFile = null
-        def pubCacheDir = file("${System.getProperty('user.home')}/.pub-cache/hosted/pub.dev")
+        
+        // Cross-platform pub cache directory detection
+        def userHome = System.getProperty('user.home')
+        def localAppData = System.getenv('LOCALAPPDATA') ?: "${userHome}/AppData/Local"
+        
+        def pubCacheDirs = [
+            file("${userHome}/.pub-cache/hosted/pub.dev"),     // Unix/Mac/Linux
+            file("${localAppData}/Pub/Cache/hosted/pub.dev")   // Windows
+        ]
         
         // Look for the plugin in pub cache
-        if (pubCacheDir.exists()) {
-            pubCacheDir.listFiles().each { dir ->
-                if (dir.name.startsWith('skaletek_kyc-') && dir.isDirectory()) {
-                    def configFile = file("${dir.absolutePath}/assets/amplifyconfiguration.json")
-                    def proguardFile = file("${dir.absolutePath}/android/skaletek-proguard-rules.pro")
-                    
-                    if (configFile.exists()) {
-                        sourceFile = configFile
-                    }
-                    if (proguardFile.exists()) {
-                        proguardSourceFile = proguardFile
-                    }
-                    
-                    if (sourceFile && proguardSourceFile) {
-                        return true // break from closure
+        for (def pubCacheDir : pubCacheDirs) {
+            if (pubCacheDir.exists()) {
+                pubCacheDir.listFiles().each { dir ->
+                    if (dir.name.startsWith('skaletek_kyc-') && dir.isDirectory()) {
+                        def configFile = file("${dir.absolutePath}/assets/amplifyconfiguration.json")
+                        def proguardFile = file("${dir.absolutePath}/android/skaletek-proguard-rules.pro")
+                        
+                        if (configFile.exists()) {
+                            sourceFile = configFile
+                        }
+                        if (proguardFile.exists()) {
+                            proguardSourceFile = proguardFile
+                        }
+                        
+                        if (sourceFile && proguardSourceFile) {
+                            return true // break from closure
+                        }
                     }
                 }
+            }
+            
+            // Break if files found after checking this pub cache directory
+            if (sourceFile && proguardSourceFile) {
+                break
             }
         }
         
@@ -68,6 +83,10 @@ task configureKYCIntegration {
             // println "✅ Skaletek KYC: amplifyconfiguration.json copied successfully"
         } else {
             println "⚠️ Skaletek KYC: amplifyconfiguration.json not found"
+            println "   Searched in:"
+            pubCacheDirs.each { dir -> 
+                println "   - ${dir.absolutePath}"
+            }
         }
         
         // Copy ProGuard rules
@@ -124,6 +143,10 @@ task configureKYCIntegration {
             }
         } else {
             println "⚠️ Skaletek KYC: ProGuard rules file not found"
+            println "   Searched in:"
+            pubCacheDirs.each { dir -> 
+                println "   - ${dir.absolutePath}/skaletek_kyc-*/android/"
+            }
         }
         
         if (sourceFile || proguardSourceFile) {

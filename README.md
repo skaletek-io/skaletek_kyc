@@ -20,7 +20,7 @@ Add the dependency to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  skaletek_kyc: ^0.0.3
+  skaletek_kyc: ^0.0.4
 ```
 
 Run:
@@ -131,13 +131,14 @@ dependencies {
 
 
 apply {
-    val pubCacheDir = file("${System.getProperty("user.home")}/.pub-cache/hosted/pub.dev")
-    val setupScript = pubCacheDir.listFiles()?.find { it.name.startsWith("skaletek_kyc-") }
-        ?.let { file("${it.absolutePath}/android/skaletek_kyc.gradle") }
+    val userHome = System.getProperty("user.home")
+    val localAppData = System.getenv("LOCALAPPDATA") ?: "$userHome/AppData/Local"
+    val pubCacheDirs = listOf("$userHome/.pub-cache/hosted/pub.dev", "$localAppData/Pub/Cache/hosted/pub.dev")
     
-    if (setupScript?.exists() == true) {
-        from(setupScript)
-    }
+    pubCacheDirs.map { file(it) }.find { it.exists() }?.listFiles()
+        ?.find { it.name.startsWith("skaletek_kyc-") }
+        ?.let { file("${it.absolutePath}/android/skaletek_kyc.gradle") }
+        ?.takeIf { it.exists() }?.let { from(it) }
 }
 ```
 
