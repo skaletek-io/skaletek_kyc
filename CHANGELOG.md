@@ -1,3 +1,12 @@
+## 0.0.5
+**Document Detection Logic Update** - Improved document detection reliability.
+
+### 🐛 Bug Fixes
+* **Document Detection**: Removed unnecessary success condition check that was preventing proper document detection
+* **General**: Improved error handling and fallback behavior for document processing
+
+---
+
 ## 0.0.4
 **Cross-Platform Compatibility Release** - Enhanced Windows support and bug fixes.
 
