@@ -246,9 +246,11 @@ class KYCService {
       final success = data['success'] ?? false;
       final bbox = data['bbox'];
 
+      // dont use success anymore
       if (!success) {
         // developer.log('Warning: Unable to detect ID');
-        return <double>[]; // Return empty list instead of null
+        // return <double>[]; // Return empty list instead of null
+        // developer.log('success $success');
       }
 
       if (bbox != null && bbox is List && bbox.length == 4) {
