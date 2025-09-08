@@ -72,5 +72,85 @@
   "spanish": "Español",
   "@spanish": {
     "description": "Spanish language name"
+  },
+
+  "continueButton": "Continue",
+  "@continueButton": {
+    "description": "Continue button text"
+  },
+
+  "goBack": "Go Back",
+  "@goBack": {
+    "description": "Go back button text"
+  },
+
+  "startLivenessCheck": "Start liveness check",
+  "@startLivenessCheck": {
+    "description": "Button text to start liveness check"
+  },
+
+  "creatingSession": "Creating session...",
+  "@creatingSession": {
+    "description": "Loading message when creating session"
+  },
+
+  "clickToStartLivenessCheck": "Click to Start liveness check",
+  "@clickToStartLivenessCheck": {
+    "description": "Instruction for starting liveness check"
+  },
+
+  "frontView": "Front view",
+  "@frontView": {
+    "description": "Label for front side of document"
+  },
+
+  "backView": "Back view",
+  "@backView": {
+    "description": "Label for back side of document"
+  },
+
+  "pleaseSelectFrontDocument": "Please select a front document",
+  "@pleaseSelectFrontDocument": {
+    "description": "Error message when front document is missing"
+  },
+
+  "pleaseSelectBackDocument": "Please select a back document",
+  "@pleaseSelectBackDocument": {
+    "description": "Error message when back document is missing"
+  },
+
+  "imageSizeExceedsMaximum": "Image size exceeds the maximum allowed size",
+  "@imageSizeExceedsMaximum": {
+    "description": "Error when image file is too large"
+  },
+
+  "failedToPickImage": "Failed to pick image: {error}",
+  "@failedToPickImage": {
+    "description": "Error when image selection fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "pleaseProvideValidDocumentType": "Please provide a valid Document type in the country",
+  "@pleaseProvideValidDocumentType": {
+    "description": "Error when document type is invalid"
+  },
+
+  "documentDetectionFailed": "Document detection failed. Using original image.",
+  "@documentDetectionFailed": {
+    "description": "Warning when document detection fails"
+  },
+
+  "sessionRefreshed": "Session refreshed. Please try uploading again.",
+  "@sessionRefreshed": {
+    "description": "Message when session is successfully refreshed"
+  },
+
+  "failedToRefreshSession": "Failed to refresh session. Please try again.",
+  "@failedToRefreshSession": {
+    "description": "Error when session refresh fails"
   }
 }

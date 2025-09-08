@@ -50,4 +50,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get spanish => 'Español';
+
+  @override
+  String get continueButton => 'Continue';
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String get startLivenessCheck => 'Start liveness check';
+
+  @override
+  String get creatingSession => 'Creating session...';
+
+  @override
+  String get clickToStartLivenessCheck => 'Click to Start liveness check';
+
+  @override
+  String get frontView => 'Front view';
+
+  @override
+  String get backView => 'Back view';
+
+  @override
+  String get pleaseSelectFrontDocument => 'Please select a front document';
+
+  @override
+  String get pleaseSelectBackDocument => 'Please select a back document';
+
+  @override
+  String get imageSizeExceedsMaximum =>
+      'Image size exceeds the maximum allowed size';
+
+  @override
+  String failedToPickImage(String error) {
+    return 'Failed to pick image: $error';
+  }
+
+  @override
+  String get pleaseProvideValidDocumentType =>
+      'Please provide a valid Document type in the country';
+
+  @override
+  String get documentDetectionFailed =>
+      'Document detection failed. Using original image.';
+
+  @override
+  String get sessionRefreshed =>
+      'Session refreshed. Please try uploading again.';
+
+  @override
+  String get failedToRefreshSession =>
+      'Failed to refresh session. Please try again.';
 }

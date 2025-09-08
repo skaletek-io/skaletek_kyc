@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:skaletek_kyc/src/services/kyc_service.dart';
 import 'package:skaletek_kyc/src/utils/image_cropper.dart';
+import 'package:skaletek_kyc/l10n/generated/app_localizations.dart';
 import 'app_color.dart';
 //import 'dart:developer' as developer;
 
@@ -102,8 +103,9 @@ class FileInputState extends State<FileInput> {
         final imageFile = await ImageFile.fromXFile(image);
         if (widget.maxFileSize != null &&
             imageFile.size > widget.maxFileSize!) {
+          final localizations = AppLocalizations.of(context);
           setState(() {
-            _errorMessage = 'Image size exceeds the maximum allowed size';
+            _errorMessage = localizations.imageSizeExceedsMaximum;
           });
           return;
         }
@@ -123,8 +125,9 @@ class FileInputState extends State<FileInput> {
         await _detectAndCropDocument(imageFile);
       }
     } catch (e) {
+      final localizations = AppLocalizations.of(context);
       setState(() {
-        _errorMessage = 'Failed to pick image: ${e.toString()}';
+        _errorMessage = localizations.failedToPickImage(e.toString());
         _isDetecting = false;
       });
       widget.onScanningChanged?.call(false);
@@ -184,8 +187,9 @@ class FileInputState extends State<FileInput> {
         widget.onScanningChanged?.call(false);
       } else {
         // No bounding box found, show toast message
+        final localizations = AppLocalizations.of(context);
         widget.onShowToast?.call(
-          'Please provide a valid Document type in the country',
+localizations.pleaseProvideValidDocumentType,
         );
         setState(() {
           _isDetecting = false;
@@ -194,8 +198,9 @@ class FileInputState extends State<FileInput> {
       }
     } catch (e) {
       // If detection fails, keep the original file and show error
+      final localizations = AppLocalizations.of(context);
       widget.onShowToast?.call(
-        'Document detection failed. Using original image.',
+localizations.documentDetectionFailed,
       );
       setState(() {
         _isDetecting = false;
@@ -246,8 +251,9 @@ class FileInputState extends State<FileInput> {
           widget.onFileSelected?.call(croppedImageFile);
           widget.onScanningChanged?.call(false);
         } else {
+          final localizations = AppLocalizations.of(context);
           widget.onShowToast?.call(
-            'Please provide a valid Document type in the country',
+localizations.pleaseProvideValidDocumentType,
           );
           setState(() {
             _isDetecting = false;
@@ -255,8 +261,9 @@ class FileInputState extends State<FileInput> {
           widget.onScanningChanged?.call(false);
         }
       } catch (e) {
+        final localizations = AppLocalizations.of(context);
         widget.onShowToast?.call(
-          'Document detection failed. Using original image.',
+localizations.documentDetectionFailed,
         );
         setState(() {
           _isDetecting = false;

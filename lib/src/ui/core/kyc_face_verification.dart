@@ -9,6 +9,7 @@ import 'package:skaletek_kyc/src/ui/shared/button.dart';
 import 'package:skaletek_kyc/src/ui/shared/spinner.dart';
 import 'package:skaletek_kyc/src/ui/shared/kyc_progress.dart';
 import 'package:skaletek_kyc/src/models/kyc_result.dart';
+import 'package:skaletek_kyc/l10n/generated/app_localizations.dart';
 
 class KYCFaceVerification extends StatefulWidget {
   const KYCFaceVerification({
@@ -198,7 +199,7 @@ class _KYCFaceVerificationState extends State<KYCFaceVerification> {
             Icon(Icons.face, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 10),
             Text(
-              'Click to Start liveness check ',
+              AppLocalizations.of(context).clickToStartLivenessCheck,
               style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ],
@@ -208,10 +209,12 @@ class _KYCFaceVerificationState extends State<KYCFaceVerification> {
   }
 
   Widget _buildFooter() {
+    final localizations = AppLocalizations.of(context);
+
     return Row(
       children: [
         KYCButton(
-          text: 'Go Back',
+          text: localizations.goBack,
           variant: KYCButtonVariant.outline,
           disabled: _isLoading || _isVerifying,
           onPressed: _isLoading || _isVerifying
@@ -221,7 +224,9 @@ class _KYCFaceVerificationState extends State<KYCFaceVerification> {
         const SizedBox(width: 16),
         Expanded(
           child: KYCButton(
-            text: _isLoading ? 'Creating session...' : 'Start liveness check',
+            text: _isLoading
+                ? localizations.creatingSession
+                : localizations.startLivenessCheck,
             block: true,
             loading: _isLoading || _isVerifying,
             onPressed: _isLoading || _isVerifying

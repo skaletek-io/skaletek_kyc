@@ -15,9 +15,9 @@ class LanguageSwitcher extends StatelessWidget {
     return Consumer<LanguageService>(
       builder: (context, languageService, child) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColor.light),
             color: Colors.white,
           ),

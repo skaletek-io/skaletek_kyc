@@ -51,4 +51,59 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get spanish => 'Español';
+
+  @override
+  String get continueButton => 'Continuer';
+
+  @override
+  String get goBack => 'Retour';
+
+  @override
+  String get startLivenessCheck => 'Démarrer la vérification de vivacité';
+
+  @override
+  String get creatingSession => 'Création de session...';
+
+  @override
+  String get clickToStartLivenessCheck =>
+      'Cliquez pour démarrer la vérification de vivacité';
+
+  @override
+  String get frontView => 'Vue de face';
+
+  @override
+  String get backView => 'Vue de dos';
+
+  @override
+  String get pleaseSelectFrontDocument =>
+      'Veuillez sélectionner un document recto';
+
+  @override
+  String get pleaseSelectBackDocument =>
+      'Veuillez sélectionner un document verso';
+
+  @override
+  String get imageSizeExceedsMaximum =>
+      'La taille de l\'image dépasse la taille maximale autorisée';
+
+  @override
+  String failedToPickImage(String error) {
+    return 'Échec de sélection d\'image : $error';
+  }
+
+  @override
+  String get pleaseProvideValidDocumentType =>
+      'Veuillez fournir un type de document valide dans le pays';
+
+  @override
+  String get documentDetectionFailed =>
+      'La détection du document a échoué. Utilisation de l\'image originale.';
+
+  @override
+  String get sessionRefreshed =>
+      'Session rafraîchie. Veuillez essayer de télécharger à nouveau.';
+
+  @override
+  String get failedToRefreshSession =>
+      'Échec du rafraîchissement de session. Veuillez réessayer.';
 }

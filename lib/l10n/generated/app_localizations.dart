@@ -177,6 +177,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Español'**
   String get spanish;
+
+  /// Continue button text
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueButton;
+
+  /// Go back button text
+  ///
+  /// In en, this message translates to:
+  /// **'Go Back'**
+  String get goBack;
+
+  /// Button text to start liveness check
+  ///
+  /// In en, this message translates to:
+  /// **'Start liveness check'**
+  String get startLivenessCheck;
+
+  /// Loading message when creating session
+  ///
+  /// In en, this message translates to:
+  /// **'Creating session...'**
+  String get creatingSession;
+
+  /// Instruction for starting liveness check
+  ///
+  /// In en, this message translates to:
+  /// **'Click to Start liveness check'**
+  String get clickToStartLivenessCheck;
+
+  /// Label for front side of document
+  ///
+  /// In en, this message translates to:
+  /// **'Front view'**
+  String get frontView;
+
+  /// Label for back side of document
+  ///
+  /// In en, this message translates to:
+  /// **'Back view'**
+  String get backView;
+
+  /// Error message when front document is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a front document'**
+  String get pleaseSelectFrontDocument;
+
+  /// Error message when back document is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a back document'**
+  String get pleaseSelectBackDocument;
+
+  /// Error when image file is too large
+  ///
+  /// In en, this message translates to:
+  /// **'Image size exceeds the maximum allowed size'**
+  String get imageSizeExceedsMaximum;
+
+  /// Error when image selection fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to pick image: {error}'**
+  String failedToPickImage(String error);
+
+  /// Error when document type is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide a valid Document type in the country'**
+  String get pleaseProvideValidDocumentType;
+
+  /// Warning when document detection fails
+  ///
+  /// In en, this message translates to:
+  /// **'Document detection failed. Using original image.'**
+  String get documentDetectionFailed;
+
+  /// Message when session is successfully refreshed
+  ///
+  /// In en, this message translates to:
+  /// **'Session refreshed. Please try uploading again.'**
+  String get sessionRefreshed;
+
+  /// Error when session refresh fails
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to refresh session. Please try again.'**
+  String get failedToRefreshSession;
 }
 
 class _AppLocalizationsDelegate

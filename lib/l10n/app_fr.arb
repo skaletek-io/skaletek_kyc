@@ -25,5 +25,35 @@
   
   "french": "Français",
   
-  "spanish": "Español"
+  "spanish": "Español",
+
+  "continueButton": "Continuer",
+
+  "goBack": "Retour",
+
+  "startLivenessCheck": "Démarrer la vérification de vivacité",
+
+  "creatingSession": "Création de session...",
+
+  "clickToStartLivenessCheck": "Cliquez pour démarrer la vérification de vivacité",
+
+  "frontView": "Vue de face",
+
+  "backView": "Vue de dos",
+
+  "pleaseSelectFrontDocument": "Veuillez sélectionner un document recto",
+
+  "pleaseSelectBackDocument": "Veuillez sélectionner un document verso",
+
+  "imageSizeExceedsMaximum": "La taille de l'image dépasse la taille maximale autorisée",
+
+  "failedToPickImage": "Échec de sélection d'image : {error}",
+
+  "pleaseProvideValidDocumentType": "Veuillez fournir un type de document valide dans le pays",
+
+  "documentDetectionFailed": "La détection du document a échoué. Utilisation de l'image originale.",
+
+  "sessionRefreshed": "Session rafraîchie. Veuillez essayer de télécharger à nouveau.",
+
+  "failedToRefreshSession": "Échec du rafraîchissement de session. Veuillez réessayer."
 }

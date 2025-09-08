@@ -36,6 +36,7 @@ import 'package:skaletek_kyc/src/ui/layout/content.dart';
 import 'package:skaletek_kyc/src/ui/shared/button.dart';
 import 'package:skaletek_kyc/src/ui/shared/file_input.dart';
 import 'package:skaletek_kyc/src/ui/shared/typography.dart';
+import 'package:skaletek_kyc/l10n/generated/app_localizations.dart';
 //import 'dart:developer' as developer;
 
 /// Document types that require both front and back sides for verification
@@ -321,8 +322,12 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
   /// Front document is always required. Back document is required for certain
   /// document types (ID cards, permits, licenses). Shows user guidance for missing documents.
   bool _validateDocuments() {
+    final localizations = AppLocalizations.of(context);
+
     if (_frontDocument == null) {
-      widget.kycService.showSnackbar('Please select a front document');
+      widget.kycService.showSnackbar(
+        localizations.pleaseSelectFrontDocument,
+      );
       return false;
     }
 
@@ -330,7 +335,9 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
     final requiresBackView = _hasBackView(documentType);
 
     if (requiresBackView && _backDocument == null) {
-      widget.kycService.showSnackbar('Please select a back document');
+      widget.kycService.showSnackbar(
+        localizations.pleaseSelectBackDocument,
+      );
       return false;
     }
 
@@ -515,8 +522,10 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
 
   /// Build the front document view
   Widget _buildFrontView() {
+    final localizations = AppLocalizations.of(context);
+
     return _buildDocumentView(
-      title: 'Front view',
+      title: localizations.frontView,
       selectedFile: _frontDocument,
       onFileSelected: _handleFrontDocumentSelected,
       onFileRemoved: _handleFrontDocumentRemoved,
@@ -528,8 +537,10 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
 
   /// Build the back document view
   Widget _buildBackView() {
+    final localizations = AppLocalizations.of(context);
+
     return _buildDocumentView(
-      title: 'Back view',
+      title: localizations.backView,
       selectedFile: _backDocument,
       onFileSelected: _handleBackDocumentSelected,
       onFileRemoved: _handleBackDocumentRemoved,
@@ -648,13 +659,15 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: KYCContent(
         step: KYCStep.document,
         userInfo: widget.userInfo,
         footer: KYCButton(
-          text: 'Continue',
+          text: localizations.continueButton,
           block: true,
           loading: _isUploading,
           disabled: !_canProceed,

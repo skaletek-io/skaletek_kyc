@@ -25,5 +25,35 @@
   
   "french": "Français",
   
-  "spanish": "Español"
+  "spanish": "Español",
+
+  "continueButton": "Continuar",
+
+  "goBack": "Volver",
+
+  "startLivenessCheck": "Iniciar verificación de vivacidad",
+
+  "creatingSession": "Creando sesión...",
+
+  "clickToStartLivenessCheck": "Haz clic para iniciar la verificación de vivacidad",
+
+  "frontView": "Vista frontal",
+
+  "backView": "Vista trasera",
+
+  "pleaseSelectFrontDocument": "Por favor selecciona un documento frontal",
+
+  "pleaseSelectBackDocument": "Por favor selecciona un documento trasero",
+
+  "imageSizeExceedsMaximum": "El tamaño de la imagen excede el tamaño máximo permitido",
+
+  "failedToPickImage": "Error al seleccionar imagen: {error}",
+
+  "pleaseProvideValidDocumentType": "Por favor proporciona un tipo de documento válido en el país",
+
+  "documentDetectionFailed": "La detección del documento falló. Usando imagen original.",
+
+  "sessionRefreshed": "Sesión actualizada. Por favor intenta subir de nuevo.",
+
+  "failedToRefreshSession": "Error al actualizar sesión. Por favor intenta de nuevo."
 }
