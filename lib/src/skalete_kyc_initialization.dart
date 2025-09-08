@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'config/app_config.dart';
 import 'models/kyc_result.dart';
 import 'models/kyc_user_info.dart';
 import 'models/kyc_customization.dart';
 import 'services/kyc_state_provider.dart';
+import 'services/language_service.dart';
 import 'ui/kyc_verification_screen.dart';
 import 'ui/shared/app_color.dart';
+import '../l10n/generated/app_localizations.dart';
 // import 'dart:developer' as developer;
 
 class SkaletekKYC {
@@ -80,24 +83,56 @@ class SkaletekKYC {
 }
 
 /// Internal MaterialApp wrapper for the KYC SDK with consistent theming
-class _SkaletekKYCApp extends StatelessWidget {
+class _SkaletekKYCApp extends StatefulWidget {
   final KYCConfig config;
   final Function(KYCResult) onExit;
 
   const _SkaletekKYCApp({required this.config, required this.onExit});
 
   @override
+  State<_SkaletekKYCApp> createState() => _SkaletekKYCAppState();
+}
+
+class _SkaletekKYCAppState extends State<_SkaletekKYCApp> {
+  late LanguageService _languageService;
+
+  @override
+  void initState() {
+    super.initState();
+    _languageService = LanguageService();
+    _languageService.initialize();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Skaletek KYC',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColor.primary),
-        useMaterial3: true,
-      ),
-      home: ChangeNotifierProvider(
-        create: (_) => KYCStateProvider(),
-        child: KYCVerificationScreen(config: config, onExit: onExit),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: _languageService),
+        ChangeNotifierProvider(create: (_) => KYCStateProvider()),
+      ],
+      child: Consumer<LanguageService>(
+        builder: (context, languageService, child) {
+          return MaterialApp(
+            title: 'Skaletek KYC',
+            debugShowCheckedModeBanner: false,
+            locale: languageService.currentLocale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: LanguageService.supportedLocales,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: AppColor.primary),
+              useMaterial3: true,
+            ),
+            home: KYCVerificationScreen(
+              config: widget.config,
+              onExit: widget.onExit,
+            ),
+          );
+        },
       ),
     );
   }

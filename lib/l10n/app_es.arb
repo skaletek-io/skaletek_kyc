@@ -1,0 +1,79 @@
+{
+  "@@locale": "es",
+  
+  "appTitle": "Skaletek KYC",
+  
+  "exitVerificationTitle": "¿Salir de la verificación?",
+  
+  "exitVerificationMessage": "¿Estás seguro de que quieres salir del proceso de verificación? Se perderá tu progreso.",
+  
+  "exit": "Salir",
+  
+  "cancel": "Cancelar",
+  
+  "close": "Cerrar",
+  
+  "ok": "OK",
+  
+  "continueButton": "Continuar",
+  
+  "goBack": "Volver",
+  
+  "greetingGeneric": "¡Hola!",
+  
+  "greetingPersonalized": "¡Hola {firstName} {lastName}!",
+  
+  "getReadyToUploadId": "Prepárate para subir tu identificación",
+  
+  "photosensitivityWarning": "Advertencia de fotosensibilidad",
+  
+  "cameraRequiredMessage": "Necesitaremos que tengas una cámara funcionando.",
+  
+  "frontView": "Vista frontal",
+  
+  "backView": "Vista trasera",
+  
+  "pleaseSelectFrontDocument": "Por favor selecciona un documento frontal",
+  
+  "pleaseSelectBackDocument": "Por favor selecciona un documento trasero",
+  
+  "clickToStartLivenessCheck": "Haz clic para iniciar la verificación de vivacidad",
+  
+  "startLivenessCheck": "Iniciar verificación de vivacidad",
+  
+  "creatingSession": "Creando sesión...",
+  
+  "errorInitializing": "Error al inicializar: {error}",
+  
+  "imageSizeExceedsMaximum": "El tamaño de la imagen excede el tamaño máximo permitido",
+  
+  "failedToPickImage": "Error al seleccionar imagen: {error}",
+  
+  "pleaseProvideValidDocumentType": "Por favor proporciona un tipo de documento válido en el país",
+  
+  "documentDetectionFailed": "La detección del documento falló. Usando imagen original.",
+  
+  "sessionRefreshed": "Sesión actualizada. Por favor intenta subir de nuevo.",
+  
+  "failedToRefreshSession": "Error al actualizar sesión. Por favor intenta de nuevo.",
+  
+  "fitIdCardInBox": "Coloca la tarjeta de identificación en el marco",
+  
+  "moveLeftSlightly": "Muévete ligeramente hacia la izquierda.",
+  
+  "moveRightSlightly": "Muévete ligeramente hacia la derecha.",
+  
+  "connecting": "Conectando…",
+  
+  "processingErrorOccurred": "Ocurrió un error de procesamiento",
+  
+  "captured": "¡Capturado!",
+  
+  "languageSelector": "Idioma",
+  
+  "english": "English",
+  
+  "french": "Français",
+  
+  "spanish": "Español"
+}

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:skaletek_kyc/src/ui/shared/app_color.dart';
 import 'package:skaletek_kyc/src/ui/shared/logo.dart';
 import 'package:skaletek_kyc/src/ui/shared/alert.dart';
+import 'package:skaletek_kyc/src/ui/shared/language_switcher.dart';
+import 'package:skaletek_kyc/l10n/generated/app_localizations.dart';
 
 class KYCHeader extends StatelessWidget implements PreferredSizeWidget {
   final String? logoUrl;
@@ -15,17 +17,20 @@ class KYCHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+
     Future<void> showCloseConfirmation() async {
       final navigator = Navigator.of(context);
       final shouldClose = await showDialog<bool>(
         barrierDismissible: false,
         context: context,
         builder: (context) => KYCAlert(
-          title: 'Exit Verification?',
+          title: localizations?.exitVerificationTitle ?? 'Exit Verification?',
           description:
+              localizations?.exitVerificationMessage ??
               'Are you sure you want to exit the verification process? Your progress will be lost.',
-          confirmText: 'Exit',
-          cancelText: 'Cancel',
+          confirmText: localizations?.exit ?? 'Exit',
+          cancelText: localizations?.cancel ?? 'Cancel',
         ),
       );
       if (shouldClose == true) {
@@ -48,6 +53,10 @@ class KYCHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         if (actions != null) ...actions!,
+        const Padding(
+          padding: EdgeInsets.only(right: 8),
+          child: LanguageSwitcher(),
+        ),
         Padding(
           padding: const EdgeInsets.only(right: 8),
           child: IconButton(
@@ -60,7 +69,7 @@ class KYCHeader extends StatelessWidget implements PreferredSizeWidget {
             icon: Icon(Icons.close, color: Colors.grey[700], size: 24),
             onPressed: showCloseConfirmation,
             splashRadius: 24,
-            tooltip: 'Close',
+            tooltip: localizations?.close ?? 'Close',
           ),
         ),
       ],

@@ -1,0 +1,84 @@
+/* French localization for Skaletek KYC iOS */
+
+/* General */
+"skaletek_kyc_ok" = "OK";
+"skaletek_kyc_cancel" = "Annuler";
+"skaletek_kyc_close" = "Fermer";
+"skaletek_kyc_continue" = "Continuer";
+"skaletek_kyc_back" = "Retour";
+"skaletek_kyc_exit" = "Quitter";
+
+/* KYC Flow */
+"skaletek_kyc_exit_verification_title" = "Quitter la vérification ?";
+"skaletek_kyc_exit_verification_message" = "Êtes-vous sûr de vouloir quitter le processus de vérification ? Votre progression sera perdue.";
+
+/* Document Verification */
+"skaletek_kyc_front_view" = "Vue de face";
+"skaletek_kyc_back_view" = "Vue de dos";
+"skaletek_kyc_document_upload_instruction" = "Préparez-vous à télécharger votre pièce d'identité";
+"skaletek_kyc_photosensitivity_warning" = "Avertissement de photosensibilité";
+"skaletek_kyc_camera_required_message" = "Nous aurons besoin que vous ayez une caméra fonctionnelle.";
+
+/* Face Liveness */
+"skaletek_kyc_start_liveness_check" = "Démarrer la vérification de vivacité";
+"skaletek_kyc_creating_session" = "Création de session...";
+"skaletek_kyc_click_to_start_liveness" = "Cliquez pour démarrer la vérification de vivacité";
+
+/* Error Messages */
+"skaletek_kyc_image_size_exceeds_maximum" = "La taille de l'image dépasse la taille maximale autorisée";
+"skaletek_kyc_document_detection_failed" = "La détection du document a échoué. Utilisation de l'image originale.";
+"skaletek_kyc_session_refresh_failed" = "Échec du rafraîchissement de session. Veuillez réessayer.";
+"skaletek_kyc_session_refreshed" = "Session rafraîchie. Veuillez essayer de télécharger à nouveau.";
+"skaletek_kyc_please_provide_valid_document" = "Veuillez fournir un type de document valide dans le pays";
+"skaletek_kyc_please_select_front_document" = "Veuillez sélectionner un document recto";
+"skaletek_kyc_please_select_back_document" = "Veuillez sélectionner un document verso";
+
+/* Camera Instructions */
+"skaletek_kyc_fit_id_card_in_box" = "Placez la carte d'identité dans le cadre";
+"skaletek_kyc_move_left_slightly" = "Bougez légèrement vers la gauche.";
+"skaletek_kyc_move_right_slightly" = "Bougez légèrement vers la droite.";
+"skaletek_kyc_connecting" = "Connexion…";
+"skaletek_kyc_processing_error_occurred" = "Une erreur de traitement s'est produite";
+"skaletek_kyc_captured" = "Capturé !";
+
+/* Greetings */
+"skaletek_kyc_greeting_generic" = "Salut !";
+
+/* Language */
+"skaletek_kyc_language_selector" = "Langue";
+"skaletek_kyc_english" = "English";
+"skaletek_kyc_french" = "Français";
+"skaletek_kyc_spanish" = "Español";
+
+/* AWS Amplify Face Liveness Detector */
+"amplify_ui_liveness_detector_move_face_closer" = "Rapprochez-vous";
+"amplify_ui_liveness_detector_move_face_back" = "Éloignez-vous";
+"amplify_ui_liveness_detector_move_face_to_center" = "Centrez votre visage";
+"amplify_ui_liveness_detector_move_to_center" = "Centrez-vous";
+"amplify_ui_liveness_detector_hold_still" = "Restez immobile";
+"amplify_ui_liveness_detector_get_ready" = "Préparez-vous";
+"amplify_ui_liveness_detector_photo_taken" = "Photo prise";
+"amplify_ui_liveness_detector_recording" = "Enregistrement...";
+"amplify_ui_liveness_detector_start_screen_title" = "Contrôle de vivacité";
+"amplify_ui_liveness_detector_start_screen_subtitle" = "Vous allez passer par un processus de vérification faciale pour prouver que vous êtes une vraie personne. Votre visage sera analysé pour détecter si vous êtes réel (pas une photo ou vidéo).";
+"amplify_ui_liveness_detector_challenge_instruction" = "Quand un ovale apparaît, remplissez l'ovale avec votre visage en 7 secondes";
+"amplify_ui_liveness_detector_start_screen_begin_check" = "Commencer la vérification vidéo";
+"amplify_ui_liveness_detector_cancel_challenge" = "Annuler le défi";
+"amplify_ui_liveness_detector_instruction_hold_face_during_countdown" = "Maintenez la position du visage pendant le décompte";
+"amplify_ui_liveness_detector_instruction_move_face_back" = "Éloignez-vous";
+"amplify_ui_liveness_detector_instruction_move_face_closer" = "Rapprochez-vous";
+"amplify_ui_liveness_detector_instruction_move_face_right" = "Bougez vers la droite";
+"amplify_ui_liveness_detector_instruction_move_face_left" = "Bougez vers la gauche";
+"amplify_ui_liveness_detector_instruction_turn_face_right" = "Tournez vers la droite";
+"amplify_ui_liveness_detector_instruction_turn_face_left" = "Tournez vers la gauche";
+"amplify_ui_liveness_detector_camera_permission_denied" = "L'autorisation de la caméra est requise pour continuer";
+"amplify_ui_liveness_detector_camera_permission_button" = "Mettre à jour les paramètres";
+"amplify_ui_liveness_detector_close_button" = "Fermer";
+"amplify_ui_liveness_detector_retry_button" = "Réessayer";
+"amplify_ui_liveness_detector_photosensitivity_title" = "Avertissement de photosensibilité";
+"amplify_ui_liveness_detector_photosensitivity_description" = "Ce contrôle clignote en différentes couleurs. Soyez prudent si vous êtes photosensible.";
+"amplify_ui_liveness_detector_photosensitivity_icon_a11y" = "Avertissement";
+"amplify_ui_liveness_detector_connecting" = "Connexion...";
+"amplify_ui_liveness_detector_verifying" = "Vérification...";
+"amplify_ui_liveness_detector_cancel" = "Annuler";
+"amplify_ui_liveness_detector_success_message" = "Visage vérifié avec succès !";

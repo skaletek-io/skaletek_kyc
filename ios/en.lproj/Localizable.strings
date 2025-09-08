@@ -1,0 +1,84 @@
+/* English localization for Skaletek KYC iOS */
+
+/* General */
+"skaletek_kyc_ok" = "OK";
+"skaletek_kyc_cancel" = "Cancel";
+"skaletek_kyc_close" = "Close";
+"skaletek_kyc_continue" = "Continue";
+"skaletek_kyc_back" = "Back";
+"skaletek_kyc_exit" = "Exit";
+
+/* KYC Flow */
+"skaletek_kyc_exit_verification_title" = "Exit Verification?";
+"skaletek_kyc_exit_verification_message" = "Are you sure you want to exit the verification process? Your progress will be lost.";
+
+/* Document Verification */
+"skaletek_kyc_front_view" = "Front view";
+"skaletek_kyc_back_view" = "Back view";
+"skaletek_kyc_document_upload_instruction" = "Get ready to upload your ID";
+"skaletek_kyc_photosensitivity_warning" = "Photosensitivity Warning";
+"skaletek_kyc_camera_required_message" = "We will require you have a working camera.";
+
+/* Face Liveness */
+"skaletek_kyc_start_liveness_check" = "Start liveness check";
+"skaletek_kyc_creating_session" = "Creating session...";
+"skaletek_kyc_click_to_start_liveness" = "Click to Start liveness check";
+
+/* Error Messages */
+"skaletek_kyc_image_size_exceeds_maximum" = "Image size exceeds the maximum allowed size";
+"skaletek_kyc_document_detection_failed" = "Document detection failed. Using original image.";
+"skaletek_kyc_session_refresh_failed" = "Failed to refresh session. Please try again.";
+"skaletek_kyc_session_refreshed" = "Session refreshed. Please try uploading again.";
+"skaletek_kyc_please_provide_valid_document" = "Please provide a valid Document type in the country";
+"skaletek_kyc_please_select_front_document" = "Please select a front document";
+"skaletek_kyc_please_select_back_document" = "Please select a back document";
+
+/* Camera Instructions */
+"skaletek_kyc_fit_id_card_in_box" = "Fit ID card in the box";
+"skaletek_kyc_move_left_slightly" = "Move left slightly.";
+"skaletek_kyc_move_right_slightly" = "Move right slightly.";
+"skaletek_kyc_connecting" = "Connecting…";
+"skaletek_kyc_processing_error_occurred" = "Processing error occurred";
+"skaletek_kyc_captured" = "Captured!";
+
+/* Greetings */
+"skaletek_kyc_greeting_generic" = "Hey there!";
+
+/* Language */
+"skaletek_kyc_language_selector" = "Language";
+"skaletek_kyc_english" = "English";
+"skaletek_kyc_french" = "Français";
+"skaletek_kyc_spanish" = "Español";
+
+/* AWS Amplify Face Liveness Detector */
+"amplify_ui_liveness_detector_move_face_closer" = "Move closer";
+"amplify_ui_liveness_detector_move_face_back" = "Move back";
+"amplify_ui_liveness_detector_move_face_to_center" = "Center your face";
+"amplify_ui_liveness_detector_move_to_center" = "Move to center";
+"amplify_ui_liveness_detector_hold_still" = "Hold still";
+"amplify_ui_liveness_detector_get_ready" = "Get ready";
+"amplify_ui_liveness_detector_photo_taken" = "Photo taken";
+"amplify_ui_liveness_detector_recording" = "Recording...";
+"amplify_ui_liveness_detector_start_screen_title" = "Liveness check";
+"amplify_ui_liveness_detector_start_screen_subtitle" = "You will go through a face verification process to prove that you are a real person. Your face will be analyzed to detect if you are real (not a photo or video).";
+"amplify_ui_liveness_detector_challenge_instruction" = "When an oval appears, fill the oval with your face within 7 seconds";
+"amplify_ui_liveness_detector_start_screen_begin_check" = "Start video check";
+"amplify_ui_liveness_detector_cancel_challenge" = "Cancel challenge";
+"amplify_ui_liveness_detector_instruction_hold_face_during_countdown" = "Hold face position during countdown";
+"amplify_ui_liveness_detector_instruction_move_face_back" = "Move back";
+"amplify_ui_liveness_detector_instruction_move_face_closer" = "Move closer";
+"amplify_ui_liveness_detector_instruction_move_face_right" = "Move right";
+"amplify_ui_liveness_detector_instruction_move_face_left" = "Move left";
+"amplify_ui_liveness_detector_instruction_turn_face_right" = "Turn right";
+"amplify_ui_liveness_detector_instruction_turn_face_left" = "Turn left";
+"amplify_ui_liveness_detector_camera_permission_denied" = "Camera permission is required to continue";
+"amplify_ui_liveness_detector_camera_permission_button" = "Update setting";
+"amplify_ui_liveness_detector_close_button" = "Close";
+"amplify_ui_liveness_detector_retry_button" = "Try again";
+"amplify_ui_liveness_detector_photosensitivity_title" = "Photosensitivity warning";
+"amplify_ui_liveness_detector_photosensitivity_description" = "This check flashes different colors. Use caution if you are photosensitive.";
+"amplify_ui_liveness_detector_photosensitivity_icon_a11y" = "Warning";
+"amplify_ui_liveness_detector_connecting" = "Connecting...";
+"amplify_ui_liveness_detector_verifying" = "Verifying...";
+"amplify_ui_liveness_detector_cancel" = "Cancel";
+"amplify_ui_liveness_detector_success_message" = "Face verified successfully!";

@@ -3,6 +3,7 @@ import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
 import 'package:skaletek_kyc/src/models/kyc_user_info.dart';
 import 'package:skaletek_kyc/src/ui/shared/app_color.dart';
 import 'package:skaletek_kyc/src/ui/shared/typography.dart';
+import 'package:skaletek_kyc/l10n/generated/app_localizations.dart';
 
 class KYCContent extends StatelessWidget {
   final Widget? child;
@@ -65,47 +66,60 @@ class KYCContent extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: EdgeInsets.all(14),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                StyledTitle(
-                  step == KYCStep.document
-                      ? _getGreetingText()
-                      : 'Photosensitivity Warning',
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+    return Builder(
+      builder: (context) {
+        final localizations = AppLocalizations.of(context);
+
+        return Padding(
+          padding: EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StyledTitle(
+                      step == KYCStep.document
+                          ? _getGreetingText(localizations)
+                          : localizations?.photosensitivityWarning ??
+                                'Photosensitivity Warning',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    StyledText(
+                      step == KYCStep.document
+                          ? localizations?.getReadyToUploadId ??
+                                'Get ready to upload your ID'
+                          : localizations?.cameraRequiredMessage ??
+                                'We will require you have a working camera.',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ],
                 ),
-                StyledText(
-                  step == KYCStep.document
-                      ? 'Get ready to upload your ID'
-                      : 'We will require you have a working camera.',
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                ),
-              ],
-            ),
+              ),
+              SizedBox(width: 8),
+              Image.asset(
+                step == KYCStep.document
+                    ? 'packages/skaletek_kyc/assets/images/fancy-arrow.png'
+                    : 'packages/skaletek_kyc/assets/images/fancy-arrow-2.png',
+                width: 40,
+              ),
+            ],
           ),
-          SizedBox(width: 8),
-          Image.asset(
-            step == KYCStep.document
-                ? 'packages/skaletek_kyc/assets/images/fancy-arrow.png'
-                : 'packages/skaletek_kyc/assets/images/fancy-arrow-2.png',
-            width: 40,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  String _getGreetingText() {
+  String _getGreetingText(AppLocalizations? localizations) {
     if (userInfo == null || userInfo!.firstName.isEmpty) {
-      return 'Hey there!';
+      return localizations?.greetingGeneric ?? 'Hey there!';
     }
-    return 'Hey ${userInfo!.firstName} ${userInfo!.lastName}!';
+    return localizations?.greetingPersonalized(
+          userInfo!.firstName,
+          userInfo!.lastName,
+        ) ??
+        'Hey ${userInfo!.firstName} ${userInfo!.lastName}!';
   }
 }

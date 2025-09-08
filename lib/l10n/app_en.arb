@@ -1,0 +1,211 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "Skaletek KYC",
+  "@appTitle": {
+    "description": "Application title"
+  },
+  
+  "exitVerificationTitle": "Exit Verification?",
+  "@exitVerificationTitle": {
+    "description": "Title for exit verification dialog"
+  },
+  
+  "exitVerificationMessage": "Are you sure you want to exit the verification process? Your progress will be lost.",
+  "@exitVerificationMessage": {
+    "description": "Message for exit verification dialog"
+  },
+  
+  "exit": "Exit",
+  "@exit": {
+    "description": "Exit button text"
+  },
+  
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+  
+  "close": "Close",
+  "@close": {
+    "description": "Close button text"
+  },
+  
+  "ok": "OK",
+  "@ok": {
+    "description": "OK button text"
+  },
+  
+  "continueButton": "Continue",
+  "@continueButton": {
+    "description": "Continue button text"
+  },
+  
+  "goBack": "Go Back",
+  "@goBack": {
+    "description": "Go back button text"
+  },
+  
+  "greetingGeneric": "Hey there!",
+  "@greetingGeneric": {
+    "description": "Generic greeting when no user name is available"
+  },
+  
+  "greetingPersonalized": "Hey {firstName} {lastName}!",
+  "@greetingPersonalized": {
+    "description": "Personalized greeting with user's name",
+    "placeholders": {
+      "firstName": {
+        "type": "String"
+      },
+      "lastName": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "getReadyToUploadId": "Get ready to upload your ID",
+  "@getReadyToUploadId": {
+    "description": "Main instruction for document upload"
+  },
+  
+  "photosensitivityWarning": "Photosensitivity Warning",
+  "@photosensitivityWarning": {
+    "description": "Warning title for photosensitive users"
+  },
+  
+  "cameraRequiredMessage": "We will require you have a working camera.",
+  "@cameraRequiredMessage": {
+    "description": "Message about camera requirement"
+  },
+  
+  "frontView": "Front view",
+  "@frontView": {
+    "description": "Label for front side of document"
+  },
+  
+  "backView": "Back view",
+  "@backView": {
+    "description": "Label for back side of document"
+  },
+  
+  "pleaseSelectFrontDocument": "Please select a front document",
+  "@pleaseSelectFrontDocument": {
+    "description": "Error message when front document is missing"
+  },
+  
+  "pleaseSelectBackDocument": "Please select a back document",
+  "@pleaseSelectBackDocument": {
+    "description": "Error message when back document is missing"
+  },
+  
+  "clickToStartLivenessCheck": "Click to Start liveness check",
+  "@clickToStartLivenessCheck": {
+    "description": "Instruction for starting liveness check"
+  },
+  
+  "startLivenessCheck": "Start liveness check",
+  "@startLivenessCheck": {
+    "description": "Button text to start liveness check"
+  },
+  
+  "creatingSession": "Creating session...",
+  "@creatingSession": {
+    "description": "Loading message when creating session"
+  },
+  
+  "errorInitializing": "Error initializing: {error}",
+  "@errorInitializing": {
+    "description": "Error message when initialization fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "imageSizeExceedsMaximum": "Image size exceeds the maximum allowed size",
+  "@imageSizeExceedsMaximum": {
+    "description": "Error when image file is too large"
+  },
+  
+  "failedToPickImage": "Failed to pick image: {error}",
+  "@failedToPickImage": {
+    "description": "Error when image selection fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "pleaseProvideValidDocumentType": "Please provide a valid Document type in the country",
+  "@pleaseProvideValidDocumentType": {
+    "description": "Error when document type is invalid"
+  },
+  
+  "documentDetectionFailed": "Document detection failed. Using original image.",
+  "@documentDetectionFailed": {
+    "description": "Warning when document detection fails"
+  },
+  
+  "sessionRefreshed": "Session refreshed. Please try uploading again.",
+  "@sessionRefreshed": {
+    "description": "Message when session is successfully refreshed"
+  },
+  
+  "failedToRefreshSession": "Failed to refresh session. Please try again.",
+  "@failedToRefreshSession": {
+    "description": "Error when session refresh fails"
+  },
+  
+  "fitIdCardInBox": "Fit ID card in the box",
+  "@fitIdCardInBox": {
+    "description": "Instruction for document capture"
+  },
+  
+  "moveLeftSlightly": "Move left slightly.",
+  "@moveLeftSlightly": {
+    "description": "Direction instruction for document positioning"
+  },
+  
+  "moveRightSlightly": "Move right slightly.",
+  "@moveRightSlightly": {
+    "description": "Direction instruction for document positioning"
+  },
+  
+  "connecting": "Connecting…",
+  "@connecting": {
+    "description": "Status message while connecting"
+  },
+  
+  "processingErrorOccurred": "Processing error occurred",
+  "@processingErrorOccurred": {
+    "description": "Error message for processing issues"
+  },
+  
+  "captured": "Captured!",
+  "@captured": {
+    "description": "Success message when image is captured"
+  },
+  
+  "languageSelector": "Language",
+  "@languageSelector": {
+    "description": "Label for language selector dropdown"
+  },
+  
+  "english": "English",
+  "@english": {
+    "description": "English language name"
+  },
+  
+  "french": "Français",
+  "@french": {
+    "description": "French language name"
+  },
+  
+  "spanish": "Español",
+  "@spanish": {
+    "description": "Spanish language name"
+  }
+}
