@@ -53,4 +53,37 @@
     <string name="skaletek_kyc_english">English</string>
     <string name="skaletek_kyc_french">Français</string>
     <string name="skaletek_kyc_spanish">Español</string>
+
+    <!-- AWS Amplify Face Liveness Detector -->
+    <string name="amplify_ui_liveness_detector_move_face_closer">Acércate</string>
+    <string name="amplify_ui_liveness_detector_move_face_back">Aléjate</string>
+    <string name="amplify_ui_liveness_detector_move_face_to_center">Centra tu rostro</string>
+    <string name="amplify_ui_liveness_detector_move_to_center">Muévete al centro</string>
+    <string name="amplify_ui_liveness_detector_hold_still">Mantente quieto</string>
+    <string name="amplify_ui_liveness_detector_get_ready">Prepárate</string>
+    <string name="amplify_ui_liveness_detector_photo_taken">Foto tomada</string>
+    <string name="amplify_ui_liveness_detector_recording">Grabando...</string>
+    <string name="amplify_ui_liveness_detector_start_screen_title">Verificación de vivacidad</string>
+    <string name="amplify_ui_liveness_detector_start_screen_subtitle">Pasarás por un proceso de verificación facial para demostrar que eres una persona real. Tu rostro será analizado para detectar si eres real (no una foto o video).</string>
+    <string name="amplify_ui_liveness_detector_challenge_instruction">Cuando aparezca un óvalo, llena el óvalo con tu rostro en 7 segundos</string>
+    <string name="amplify_ui_liveness_detector_start_screen_begin_check">Iniciar verificación de video</string>
+    <string name="amplify_ui_liveness_detector_cancel_challenge">Cancelar desafío</string>
+    <string name="amplify_ui_liveness_detector_instruction_hold_face_during_countdown">Mantén la posición del rostro durante la cuenta regresiva</string>
+    <string name="amplify_ui_liveness_detector_instruction_move_face_back">Aléjate</string>
+    <string name="amplify_ui_liveness_detector_instruction_move_face_closer">Acércate</string>
+    <string name="amplify_ui_liveness_detector_instruction_move_face_right">Muévete a la derecha</string>
+    <string name="amplify_ui_liveness_detector_instruction_move_face_left">Muévete a la izquierda</string>
+    <string name="amplify_ui_liveness_detector_instruction_turn_face_right">Gira a la derecha</string>
+    <string name="amplify_ui_liveness_detector_instruction_turn_face_left">Gira a la izquierda</string>
+    <string name="amplify_ui_liveness_detector_camera_permission_denied">Se requiere permiso de cámara para continuar</string>
+    <string name="amplify_ui_liveness_detector_camera_permission_button">Actualizar configuración</string>
+    <string name="amplify_ui_liveness_detector_close_button">Cerrar</string>
+    <string name="amplify_ui_liveness_detector_retry_button">Intentar de nuevo</string>
+    <string name="amplify_ui_liveness_detector_photosensitivity_title">Advertencia de fotosensibilidad</string>
+    <string name="amplify_ui_liveness_detector_photosensitivity_description">Esta verificación parpadea con diferentes colores. Ten precaución si eres fotosensible.</string>
+    <string name="amplify_ui_liveness_detector_photosensitivity_icon_a11y">Advertencia</string>
+    <string name="amplify_ui_liveness_detector_connecting">Conectando...</string>
+    <string name="amplify_ui_liveness_detector_verifying">Verificando...</string>
+    <string name="amplify_ui_liveness_detector_cancel">Cancelar</string>
+    <string name="amplify_ui_liveness_detector_success_message">¡Rostro verificado exitosamente!</string>
 </resources>
