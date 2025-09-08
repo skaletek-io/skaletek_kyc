@@ -9,9 +9,6 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
-  String get appTitle => 'Skaletek KYC';
-
-  @override
   String get exitVerificationTitle => 'Quitter la vérification ?';
 
   @override
@@ -26,15 +23,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get close => 'Fermer';
-
-  @override
-  String get ok => 'OK';
-
-  @override
-  String get continueButton => 'Continuer';
-
-  @override
-  String get goBack => 'Retour';
 
   @override
   String get greetingGeneric => 'Salut !';
@@ -54,82 +42,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get cameraRequiredMessage =>
       'Nous aurons besoin que vous ayez une caméra fonctionnelle.';
-
-  @override
-  String get frontView => 'Vue de face';
-
-  @override
-  String get backView => 'Vue de dos';
-
-  @override
-  String get pleaseSelectFrontDocument =>
-      'Veuillez sélectionner un document recto';
-
-  @override
-  String get pleaseSelectBackDocument =>
-      'Veuillez sélectionner un document verso';
-
-  @override
-  String get clickToStartLivenessCheck =>
-      'Cliquez pour démarrer la vérification de vivacité';
-
-  @override
-  String get startLivenessCheck => 'Démarrer la vérification de vivacité';
-
-  @override
-  String get creatingSession => 'Création de session...';
-
-  @override
-  String errorInitializing(String error) {
-    return 'Erreur d\'initialisation : $error';
-  }
-
-  @override
-  String get imageSizeExceedsMaximum =>
-      'La taille de l\'image dépasse la taille maximale autorisée';
-
-  @override
-  String failedToPickImage(String error) {
-    return 'Échec de sélection d\'image : $error';
-  }
-
-  @override
-  String get pleaseProvideValidDocumentType =>
-      'Veuillez fournir un type de document valide dans le pays';
-
-  @override
-  String get documentDetectionFailed =>
-      'La détection du document a échoué. Utilisation de l\'image originale.';
-
-  @override
-  String get sessionRefreshed =>
-      'Session rafraîchie. Veuillez essayer de télécharger à nouveau.';
-
-  @override
-  String get failedToRefreshSession =>
-      'Échec du rafraîchissement de session. Veuillez réessayer.';
-
-  @override
-  String get fitIdCardInBox => 'Placez la carte d\'identité dans le cadre';
-
-  @override
-  String get moveLeftSlightly => 'Bougez légèrement vers la gauche.';
-
-  @override
-  String get moveRightSlightly => 'Bougez légèrement vers la droite.';
-
-  @override
-  String get connecting => 'Connexion…';
-
-  @override
-  String get processingErrorOccurred =>
-      'Une erreur de traitement s\'est produite';
-
-  @override
-  String get captured => 'Capturé !';
-
-  @override
-  String get languageSelector => 'Langue';
 
   @override
   String get english => 'English';
