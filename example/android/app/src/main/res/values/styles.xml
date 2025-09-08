@@ -15,4 +15,37 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+
+    <!-- AWS Amplify Face Liveness Detector -->
+    <string name="amplify_ui_liveness_detector_move_face_closer">Move closer</string>
+    <string name="amplify_ui_liveness_detector_move_face_back">Move back</string>
+    <string name="amplify_ui_liveness_detector_move_face_to_center">Center your face</string>
+    <string name="amplify_ui_liveness_detector_move_to_center">Move to center</string>
+    <string name="amplify_ui_liveness_detector_hold_still">Hold still</string>
+    <string name="amplify_ui_liveness_detector_get_ready">Get ready</string>
+    <string name="amplify_ui_liveness_detector_photo_taken">Photo taken</string>
+    <string name="amplify_ui_liveness_detector_recording">Recording...</string>
+    <string name="amplify_ui_liveness_detector_start_screen_title">Liveness check</string>
+    <string name="amplify_ui_liveness_detector_start_screen_subtitle">You will go through a face verification process to prove that you are a real person. Your face will be analyzed to detect if you are real (not a photo or video).</string>
+    <string name="amplify_ui_liveness_detector_challenge_instruction">When an oval appears, fill the oval with your face within 7 seconds</string>
+    <string name="amplify_ui_liveness_detector_start_screen_begin_check">Start video check</string>
+    <string name="amplify_ui_liveness_detector_cancel_challenge">Cancel challenge</string>
+    <string name="amplify_ui_liveness_detector_instruction_hold_face_during_countdown">Hold face position during countdown</string>
+    <string name="amplify_ui_liveness_detector_instruction_move_face_back">Move back</string>
+    <string name="amplify_ui_liveness_detector_instruction_move_face_closer">Move closer</string>
+    <string name="amplify_ui_liveness_detector_instruction_move_face_right">Move right</string>
+    <string name="amplify_ui_liveness_detector_instruction_move_face_left">Move left</string>
+    <string name="amplify_ui_liveness_detector_instruction_turn_face_right">Turn right</string>
+    <string name="amplify_ui_liveness_detector_instruction_turn_face_left">Turn left</string>
+    <string name="amplify_ui_liveness_detector_camera_permission_denied">Camera permission is required to continue</string>
+    <string name="amplify_ui_liveness_detector_camera_permission_button">Update setting</string>
+    <string name="amplify_ui_liveness_detector_close_button">Close</string>
+    <string name="amplify_ui_liveness_detector_retry_button">Try again</string>
+    <string name="amplify_ui_liveness_detector_photosensitivity_title">Photosensitivity warning</string>
+    <string name="amplify_ui_liveness_detector_photosensitivity_description">This check flashes different colors. Use caution if you are photosensitive.</string>
+    <string name="amplify_ui_liveness_detector_photosensitivity_icon_a11y">Warning</string>
+    <string name="amplify_ui_liveness_detector_connecting">Connecting...</string>
+    <string name="amplify_ui_liveness_detector_verifying">Verifying...</string>
+    <string name="amplify_ui_liveness_detector_cancel">Cancel</string>
+    <string name="amplify_ui_liveness_detector_success_message">Face verified successfully!</string>
 </resources>

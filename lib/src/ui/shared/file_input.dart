@@ -188,9 +188,7 @@ class FileInputState extends State<FileInput> {
       } else {
         // No bounding box found, show toast message
         final localizations = AppLocalizations.of(context);
-        widget.onShowToast?.call(
-localizations.pleaseProvideValidDocumentType,
-        );
+        widget.onShowToast?.call(localizations.pleaseProvideValidDocumentType);
         setState(() {
           _isDetecting = false;
         });
@@ -199,9 +197,7 @@ localizations.pleaseProvideValidDocumentType,
     } catch (e) {
       // If detection fails, keep the original file and show error
       final localizations = AppLocalizations.of(context);
-      widget.onShowToast?.call(
-localizations.documentDetectionFailed,
-      );
+      widget.onShowToast?.call(localizations.documentDetectionFailed);
       setState(() {
         _isDetecting = false;
       });
@@ -253,7 +249,7 @@ localizations.documentDetectionFailed,
         } else {
           final localizations = AppLocalizations.of(context);
           widget.onShowToast?.call(
-localizations.pleaseProvideValidDocumentType,
+            localizations.pleaseProvideValidDocumentType,
           );
           setState(() {
             _isDetecting = false;
@@ -262,9 +258,7 @@ localizations.pleaseProvideValidDocumentType,
         }
       } catch (e) {
         final localizations = AppLocalizations.of(context);
-        widget.onShowToast?.call(
-localizations.documentDetectionFailed,
-        );
+        widget.onShowToast?.call(localizations.documentDetectionFailed);
         setState(() {
           _isDetecting = false;
         });

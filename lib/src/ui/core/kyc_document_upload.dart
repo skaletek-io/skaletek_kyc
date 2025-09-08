@@ -325,9 +325,7 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
     final localizations = AppLocalizations.of(context);
 
     if (_frontDocument == null) {
-      widget.kycService.showSnackbar(
-        localizations.pleaseSelectFrontDocument,
-      );
+      widget.kycService.showSnackbar(localizations.pleaseSelectFrontDocument);
       return false;
     }
 
@@ -335,9 +333,7 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
     final requiresBackView = _hasBackView(documentType);
 
     if (requiresBackView && _backDocument == null) {
-      widget.kycService.showSnackbar(
-        localizations.pleaseSelectBackDocument,
-      );
+      widget.kycService.showSnackbar(localizations.pleaseSelectBackDocument);
       return false;
     }
 
