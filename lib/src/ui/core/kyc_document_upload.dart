@@ -154,7 +154,10 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
   /// Performs parallel initialization of presigned URLs and state restoration
   /// to minimize wait time and provide seamless experience.
   Future<void> _initializeDocumentUpload() async {
-    await Future.wait([_getPresignedUrls(), _restoreDocumentImages()]);
+    await Future.wait([
+      // _getPresignedUrls(),
+      _restoreDocumentImages(),
+    ]);
   }
 
   /// Handles errors with automatic session refresh when needed
