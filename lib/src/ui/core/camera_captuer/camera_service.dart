@@ -223,13 +223,13 @@ enum FeedbackMessage {
   /// Successful capture confirmation
   captured('Captured!'),
 
-  blur_quality('Keep the camera steady to avoid blur.'),
+  blurQuality('Keep the camera steady to avoid blur.'),
 
   darkness('Try moving to a brighter area'),
 
-  brightness_quality('Move to a brighter area'),
+  brightnessQuality('Move to a brighter area'),
 
-  glare_quality('Avoid reflections or tilt slightly.'),
+  glareQuality('Avoid reflections or tilt slightly.'),
 
   screen('We detected a screen reflection. Please use your physical ID.'),
 
@@ -529,7 +529,6 @@ class CameraService {
 
   String? _spoofType;
 
-  double _imagesSentCount = 0;
   bool _waitingForResponse = false;
 
   /// Timestamp of the last processed frame for rate limiting
@@ -755,63 +754,6 @@ class CameraService {
 
     if (_waitingForResponse) {
       _waitingForResponse = false;
-      _imagesSentCount = 0;
-
-      _responseTimeoutTimer?.cancel();
-    }
-
-    final processingStart = DateTime.now();
-
-    // Track network response time for adaptive optimization
-    if (_requestStartTime != null) {
-      final networkResponseTime = processingStart
-          .difference(_requestStartTime!)
-          .inMilliseconds;
-      _performanceMetrics.addNetworkResponseTime(networkResponseTime);
-      // developer.log('Network response time: ${networkResponseTime}ms');
-    }
-
-    _pendingRequest = false;
-
-    try {
-      developer.log('Received message: $data');
-
-      if (data['type'] == 'metadata') {
-        _handleMetadataResponse(data);
-        return;
-      } else if (data['type'] == 'status' && data['status'] == 'complete') {
-        _handleCompleteResponse(data);
-        return;
-      } else if (data['type'] == 'status' && data['status'] == 'captured') {
-        _handleCapturedResponse(data);
-        return;
-      }
-    } catch (e, stackTrace) {
-      developer.log('Error processing WebSocket message: $e');
-      developer.log('Stack trace: $stackTrace');
-      developer.log('Message content: $data');
-
-      // Emit error feedback to user
-      _emitFeedback(
-        DetectionFeedback(
-          message: FeedbackMessage.processingError.text,
-          checks: _lastChecks,
-          connecting: false,
-          connected: true,
-          analyzing: false,
-          feedbackState: FeedbackState.error,
-        ),
-      );
-    }
-  }
-
-  void _onWsMessageDeprecated(Map<String, dynamic> data) {
-    if (_disposed) return;
-
-    if (_waitingForResponse) {
-      _waitingForResponse = false;
-      _imagesSentCount = 0;
-
       _responseTimeoutTimer?.cancel();
     }
 
@@ -831,67 +773,16 @@ class CameraService {
     try {
       // developer.log('Received message: $data');
 
-      // Handle error responses from the server
-      if (data['success'] == false) {
-        developer.log('Server returned error response: $data');
-        _emitFeedback(
-          DetectionFeedback(
-            message: FeedbackMessage.default_.text,
-            checks: const DetectionChecks(),
-            connecting: false,
-            connected: true,
-            analyzing: false,
-            feedbackState: FeedbackState.info,
-            bbox: null,
-          ),
-        );
+      if (data['type'] == 'metadata') {
+        _handleMetadataResponse(data);
+        return;
+      } else if (data['type'] == 'status' && data['status'] == 'complete') {
+        _handleCompleteResponse(data);
+        return;
+      } else if (data['type'] == 'status' && data['status'] == 'captured') {
+        _handleCapturedResponse(data);
         return;
       }
-
-      // Process successful detection results
-      final checksData = data['checks'];
-      final DetectionChecks checks;
-
-      if (checksData is Map<String, dynamic>) {
-        checks = DetectionChecks.fromMap(checksData);
-      } else {
-        // Use default checks if no valid checks data
-        checks = const DetectionChecks();
-      }
-
-      onChecks(checks);
-      _lastChecks = checks;
-
-      final bboxList = data['bbox'];
-      Rect? bbox;
-      if (bboxList is List && bboxList.length == 4) {
-        try {
-          // Most ML services return bbox as [left, top, right, bottom] (LTRB format)
-          final left = (bboxList[0] as num).toDouble();
-          final top = (bboxList[1] as num).toDouble();
-          final right = (bboxList[2] as num).toDouble();
-          final bottom = (bboxList[3] as num).toDouble();
-
-          final croppedBbox = Rect.fromLTRB(left, top, right, bottom);
-
-          // Transform bbox from cropped image coordinates back to screen coordinates
-          bbox = _transformBboxFromCroppedToScreen(croppedBbox);
-
-          // developer.log('Transformed bbox to screen coordinates: $bbox');
-        } catch (e) {
-          developer.log('Error parsing bbox: $e');
-          bbox = null;
-        }
-      }
-      _lastBbox = bbox;
-
-      // Record performance metrics
-      final processingTime = DateTime.now()
-          .difference(processingStart)
-          .inMilliseconds;
-      _performanceMetrics.addProcessingTime(processingTime);
-
-      _handleFeedback(bbox, checks);
     } catch (e, stackTrace) {
       developer.log('Error processing WebSocket message: $e');
       developer.log('Stack trace: $stackTrace');
@@ -970,13 +861,13 @@ class CameraService {
       // Quality issue detected
       switch (falsyCheck) {
         case 'glare':
-          message = FeedbackMessage.glare_quality.text;
+          message = FeedbackMessage.glareQuality.text;
           break;
         case 'blur':
-          message = FeedbackMessage.blur_quality.text;
+          message = FeedbackMessage.blurQuality.text;
           break;
         case 'brightness':
-          message = FeedbackMessage.brightness_quality.text;
+          message = FeedbackMessage.brightnessQuality.text;
           break;
         case 'darkness':
           message = FeedbackMessage.darkness.text;
@@ -991,7 +882,7 @@ class CameraService {
       feedbackState = FeedbackState.success;
     }
 
-    developer.log('Metadata response: $message');
+    //developer.log('Metadata response: $message');
 
     _emitFeedback(
       DetectionFeedback(
@@ -1023,9 +914,9 @@ class CameraService {
     final ratio = (_framesCaptured / target).clamp(0.0, 1.0);
     _progress = ratio;
 
-    developer.log(
-      'Captured: $_framesCaptured/$_totalFramesNeeded frames (${(_progress * 100).toStringAsFixed(0)}%)',
-    );
+    // developer.log(
+    //   'Captured: $_framesCaptured/$_totalFramesNeeded frames (${(_progress * 100).toStringAsFixed(0)}%)',
+    // );
 
     // Emit feedback with "inside" message
     _emitFeedback(
@@ -1054,7 +945,7 @@ class CameraService {
       final spoofData = data['spoof'];
       if (spoofData is Map<String, dynamic>) {
         _spoofType = spoofData['label'] as String?;
-        developer.log('Spoof detection result: $_spoofType');
+        // developer.log('Spoof detection result: $_spoofType');
       }
 
       // Process final captured image
@@ -1088,7 +979,7 @@ class CameraService {
           final xFile = XFile(filePath);
           _captureController.add(xFile);
 
-          developer.log('Complete: Best image saved and emitted');
+          // developer.log('Complete: Best image saved and emitted');
         } catch (e) {
           developer.log('Error processing best_image: $e');
         }
@@ -1146,18 +1037,15 @@ class CameraService {
             // );
 
             _wsService.send(arrayBuffer);
-            _imagesSentCount++;
-
             // Set timeout to auto-reset if no response received
             _responseTimeoutTimer = Timer.periodic(const Duration(seconds: 2), (
               _,
             ) {
               if (!_disposed || _waitingForResponse) return;
-              developer.log(
-                'No response received in 5 seconds, reseting and continuing...',
-              );
+              // developer.log(
+              //   'No response received in 5 seconds, reseting and continuing...',
+              // );
               _waitingForResponse = true;
-              _imagesSentCount = 0;
             });
           } else {
             _pendingRequest = false;
@@ -1170,59 +1058,6 @@ class CameraService {
       } catch (e) {
         _pendingRequest = false;
         _waitingForResponse = false;
-        developer.log('Error processing camera image: $e');
-      }
-    });
-  }
-
-  void _startDetectionLoopDeprecated() {
-    _detectionTimer?.cancel();
-    _startImageStream(); // Start image stream for silent capture
-
-    _detectionTimer = Timer.periodic(_currentDetectionInterval, (_) async {
-      if (_disposed || !_wsService.isConnected || _pendingRequest) return;
-
-      // Frame rate limiting
-      final now = DateTime.now();
-      if (_lastFrameTime != null &&
-          now.difference(_lastFrameTime!).inMilliseconds <
-              _currentDetectionInterval.inMilliseconds) {
-        return;
-      }
-      _lastFrameTime = now;
-
-      _pendingRequest = true;
-      _requestStartTime = DateTime.now(); // Track request start time
-
-      try {
-        if (_latestCameraImage != null) {
-          final arrayBuffer = await _processCameraImage(_latestCameraImage!);
-          if (arrayBuffer != null && !_disposed) {
-            // developer.log(
-            //   'Sending optimized image data: ${arrayBuffer.length} bytes',
-            // );
-
-            // Set timeout to auto-reset if no response received
-            _responseTimeoutTimer = Timer.periodic(const Duration(seconds: 5), (
-              _,
-            ) {
-              if (!_disposed || _waitingForResponse) return;
-              developer.log(
-                'No response receive in 5 seconds, reseting and continuing...',
-              );
-              _waitingForResponse = false;
-              _imagesSentCount++;
-            });
-
-            _wsService.send(arrayBuffer);
-          } else {
-            _pendingRequest = false;
-          }
-        } else {
-          _pendingRequest = false;
-        }
-      } catch (e) {
-        _pendingRequest = false;
         developer.log('Error processing camera image: $e');
       }
     });
