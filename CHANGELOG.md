@@ -1,3 +1,9 @@
+## 0.0.7
+
+**Spoof Detection Feature** - Enhanced security with advanced anti-spoofing capabilities.
+
+
+
 ## 0.0.6
 **Document Detection Logic Update** - Improved document detection reliability.
 
