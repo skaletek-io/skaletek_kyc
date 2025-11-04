@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
       issuingCountry: "USA",
     );
     final customization = KYCCustomization(
-      docSrc: DocumentSource.file.value,
+      docSrc: DocumentSource.live.value,
       logoUrl: null,
       partnerName: "Your Company",
       primaryColor: null,
@@ -53,7 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     SkaletekKYC.instance.startVerification(
       context: context,
-      token: "your-token-here",
+      // token: "your-token-here",
+      token: "9cc38a4b43184ece822301eccc1d4b59",
       userInfo: userInfo,
       customization: customization,
       environment: SkaletekEnvironment.dev,

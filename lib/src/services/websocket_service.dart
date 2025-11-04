@@ -31,7 +31,16 @@ class WebSocketService {
   bool _disposed = false;
   int _reconnectAttempts = 0;
   WebSocketStatus _status = WebSocketStatus.disconnected;
-  String _socketUrl = 'wss://ml.dev.skaletek.io/detection/ws'; // Default to dev
+  late String _socketUrl;
+
+  /// Creates a WebSocket service with the specified environment
+  ///
+  /// [environment] - Environment string ('dev', 'prod', 'sandbox'). Defaults to 'dev'
+  WebSocketService({String? environment}) {
+    _socketUrl = AppConfig.getMlSocketUrl(
+      environment ?? SkaletekEnvironment.dev.value,
+    );
+  }
 
   // Stream controllers
   final _statusController = StreamController<WebSocketStatus>.broadcast();

@@ -28,6 +28,10 @@ class FeedbackBox extends StatelessWidget {
         bgColor = Colors.white;
         textColor = Color(0xFF126DD6);
         break;
+      case FeedbackState.warning:
+        bgColor = const Color(0xFFFFF7E6); // light yellow
+        textColor = const Color(0xFFD97706); // yellow
+        break;
     }
     return Positioned(
       top: 100,

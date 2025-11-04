@@ -156,7 +156,7 @@ class DocumentDetectionResult {
   }
 }
 
-enum DetectionCheckResult { pass, fail, none }
+enum DetectionCheckResult { pass, fail, none, warn }
 
 class DetectionChecks {
   final DetectionCheckResult glare;
@@ -191,15 +191,16 @@ class DetectionChecks {
     DetectionCheckResult parse(dynamic v) {
       if (v == 'PASS') return DetectionCheckResult.pass;
       if (v == 'FAIL') return DetectionCheckResult.fail;
+      if (v == 'WARN') return DetectionCheckResult.warn;
       return DetectionCheckResult.none;
     }
 
     return DetectionChecks(
-      glare: parse(map['glare']),
-      blur: parse(map['blur']),
-      contrast: parse(map['contrast']),
-      darkness: parse(map['darkness']),
-      brightness: parse(map['brightness']),
+      glare: parse(map['glare_quality']),
+      blur: parse(map['blur_quality']),
+      contrast: parse(map['contrast_quality']),
+      darkness: parse(map['darkness']), // Optional - for backward compatibility
+      brightness: parse(map['brightness_quality']),
     );
   }
 
@@ -217,6 +218,8 @@ class DetectionChecks {
         return 'PASS';
       case DetectionCheckResult.fail:
         return 'FAIL';
+      case DetectionCheckResult.warn:
+        return 'WARN';
       case DetectionCheckResult.none:
         return null;
     }

@@ -79,6 +79,8 @@
 /// */
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:developer' as developer;
 import 'dart:ui' as ui;
@@ -89,6 +91,7 @@ import 'package:flutter/material.dart';
 import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
 import 'package:skaletek_kyc/src/utils/image_cropper.dart';
 import 'package:skaletek_kyc/src/services/websocket_service.dart';
+import 'package:skaletek_kyc/src/config/app_config.dart';
 
 // =============================================================================
 // DETECTION TIMING CONSTANTS
@@ -167,6 +170,9 @@ enum FeedbackState {
 
   /// Success state - green colors for optimal positioning/quality
   success,
+
+  /// Warning state - yellow colors for problems requiring user action
+  warning,
 }
 
 /// Predefined feedback messages for consistent user guidance
@@ -215,7 +221,19 @@ enum FeedbackMessage {
   processingError('Processing error occurred'),
 
   /// Successful capture confirmation
-  captured('Captured!');
+  captured('Captured!'),
+
+  blur_quality('Keep the camera steady to avoid blur.'),
+
+  darkness('Try moving to a brighter area'),
+
+  brightness_quality('Move to a brighter area'),
+
+  glare_quality('Avoid reflections or tilt slightly.'),
+
+  screen('We detected a screen reflection. Please use your physical ID.'),
+
+  print('We detected a possible printout. Please use your original ID.');
 
   /// Creates a feedback message with the specified text
   const FeedbackMessage(this.text);
@@ -263,6 +281,18 @@ class DetectionFeedback {
   /// Categorized feedback state for UI styling and behavior
   final FeedbackState feedbackState;
 
+  /// Capture progress ratio (0.0 to 1.0)
+  final double progress;
+
+  /// Total number of frames needed for capture
+  final double totalFramesNeeded;
+
+  /// Number of frames captured so far
+  final double framesCaptured;
+
+  /// Spoof detection type ('real', 'screen', 'print', or null)
+  final String? spoofType;
+
   /// Creates a detection feedback instance with the specified parameters
   DetectionFeedback({
     required this.message,
@@ -272,6 +302,10 @@ class DetectionFeedback {
     this.connected = false,
     this.bbox,
     this.feedbackState = FeedbackState.info,
+    this.progress = 0.0,
+    this.totalFramesNeeded = 0.0,
+    this.framesCaptured = 0.0,
+    this.spoofType,
   });
 
   @override
@@ -284,7 +318,11 @@ class DetectionFeedback {
         other.connecting == connecting &&
         other.connected == connected &&
         other.bbox == bbox &&
-        other.feedbackState == feedbackState;
+        other.feedbackState == feedbackState &&
+        other.progress == progress &&
+        other.totalFramesNeeded == totalFramesNeeded &&
+        other.framesCaptured == framesCaptured &&
+        other.spoofType == spoofType;
   }
 
   @override
@@ -296,6 +334,10 @@ class DetectionFeedback {
     connected,
     bbox,
     feedbackState,
+    progress,
+    totalFramesNeeded,
+    framesCaptured,
+    spoofType,
   );
 }
 
@@ -467,6 +509,8 @@ class CameraService {
   /// Timer for periodic capture state validation
   Timer? _periodicCaptureTimer;
 
+  Timer? _responseTimeoutTimer;
+
   // =============================================================================
   // STATE MANAGEMENT
   // =============================================================================
@@ -474,8 +518,19 @@ class CameraService {
   /// Flag indicating if a detection request is currently pending
   bool _pendingRequest = false;
 
+  double _framesCaptured = 0;
+
+  double _totalFramesNeeded = 3;
+
+  double _progress = 0;
+
   /// Flag indicating if the service has been disposed
   bool _disposed = false;
+
+  String? _spoofType;
+
+  double _imagesSentCount = 0;
+  bool _waitingForResponse = false;
 
   /// Timestamp of the last processed frame for rate limiting
   DateTime? _lastFrameTime;
@@ -522,14 +577,20 @@ class CameraService {
   /// - [onChecks]: Callback for detection quality updates
   /// - [screenSize]: Screen dimensions for coordinate transformations
   /// - [wsService]: Optional external WebSocket service (creates own if null)
+  /// - [environment]: Environment string for WebSocket URL ('dev', 'prod', 'sandbox'). Defaults to 'dev'
   CameraService({
     required this.cameraController,
     required this.targetRect,
     required this.onChecks,
     required this.screenSize,
     WebSocketService? wsService,
+    String? environment,
   }) : _wsServiceProvided = wsService != null,
-       _wsService = wsService ?? WebSocketService() {
+       _wsService =
+           wsService ??
+           WebSocketService(
+             environment: environment ?? SkaletekEnvironment.dev.value,
+           ) {
     _initWebSocketListeners();
     _startPerformanceMonitoring();
   }
@@ -692,6 +753,68 @@ class CameraService {
   void _onWsMessage(Map<String, dynamic> data) {
     if (_disposed) return;
 
+    if (_waitingForResponse) {
+      _waitingForResponse = false;
+      _imagesSentCount = 0;
+
+      _responseTimeoutTimer?.cancel();
+    }
+
+    final processingStart = DateTime.now();
+
+    // Track network response time for adaptive optimization
+    if (_requestStartTime != null) {
+      final networkResponseTime = processingStart
+          .difference(_requestStartTime!)
+          .inMilliseconds;
+      _performanceMetrics.addNetworkResponseTime(networkResponseTime);
+      // developer.log('Network response time: ${networkResponseTime}ms');
+    }
+
+    _pendingRequest = false;
+
+    try {
+      developer.log('Received message: $data');
+
+      if (data['type'] == 'metadata') {
+        _handleMetadataResponse(data);
+        return;
+      } else if (data['type'] == 'status' && data['status'] == 'complete') {
+        _handleCompleteResponse(data);
+        return;
+      } else if (data['type'] == 'status' && data['status'] == 'captured') {
+        _handleCapturedResponse(data);
+        return;
+      }
+    } catch (e, stackTrace) {
+      developer.log('Error processing WebSocket message: $e');
+      developer.log('Stack trace: $stackTrace');
+      developer.log('Message content: $data');
+
+      // Emit error feedback to user
+      _emitFeedback(
+        DetectionFeedback(
+          message: FeedbackMessage.processingError.text,
+          checks: _lastChecks,
+          connecting: false,
+          connected: true,
+          analyzing: false,
+          feedbackState: FeedbackState.error,
+        ),
+      );
+    }
+  }
+
+  void _onWsMessageDeprecated(Map<String, dynamic> data) {
+    if (_disposed) return;
+
+    if (_waitingForResponse) {
+      _waitingForResponse = false;
+      _imagesSentCount = 0;
+
+      _responseTimeoutTimer?.cancel();
+    }
+
     final processingStart = DateTime.now();
 
     // Track network response time for adaptive optimization
@@ -788,6 +911,195 @@ class CameraService {
     }
   }
 
+  /// Handles metadata response from WebSocket
+  ///
+  /// Processes quality checks, spoof detection, and generates appropriate
+  /// user feedback based on detection results.
+  void _handleMetadataResponse(Map<String, dynamic> data) {
+    // Parse quality checks from metadata
+    final qualityMetrics = data['quality_metrics'];
+    final DetectionChecks checks;
+
+    if (qualityMetrics is Map<String, dynamic>) {
+      checks = DetectionChecks.fromMap(qualityMetrics);
+    } else {
+      checks = const DetectionChecks();
+    }
+
+    onChecks(checks);
+    _lastChecks = checks;
+
+    // Get spoof label
+    final spoofLabel = data['spoof_label'] as String?;
+    _spoofType = spoofLabel;
+
+    // Find first falsy check (FAIL or WARN)
+    String? falsyCheck;
+    if (checks.glare == DetectionCheckResult.fail ||
+        checks.glare == DetectionCheckResult.warn) {
+      falsyCheck = 'glare';
+    } else if (checks.blur == DetectionCheckResult.fail ||
+        checks.blur == DetectionCheckResult.warn) {
+      falsyCheck = 'blur';
+    } else if (checks.brightness == DetectionCheckResult.fail ||
+        checks.brightness == DetectionCheckResult.warn) {
+      falsyCheck = 'brightness';
+    } else if (checks.darkness == DetectionCheckResult.fail ||
+        checks.darkness == DetectionCheckResult.warn) {
+      falsyCheck = 'darkness';
+    } else if (checks.contrast == DetectionCheckResult.fail ||
+        checks.contrast == DetectionCheckResult.warn) {
+      falsyCheck = 'contrast';
+    }
+
+    // Determine message based on spoof label or falsy check
+    String message;
+    FeedbackState feedbackState;
+
+    if (spoofLabel != null && spoofLabel != 'real') {
+      // Spoof detected
+      if (spoofLabel == 'screen') {
+        message = FeedbackMessage.screen.text;
+      } else if (spoofLabel == 'print') {
+        message = FeedbackMessage.print.text;
+      } else {
+        message = FeedbackMessage.default_.text;
+      }
+      feedbackState = FeedbackState.error;
+    } else if (falsyCheck != null) {
+      // Quality issue detected
+      switch (falsyCheck) {
+        case 'glare':
+          message = FeedbackMessage.glare_quality.text;
+          break;
+        case 'blur':
+          message = FeedbackMessage.blur_quality.text;
+          break;
+        case 'brightness':
+          message = FeedbackMessage.brightness_quality.text;
+          break;
+        case 'darkness':
+          message = FeedbackMessage.darkness.text;
+          break;
+        default:
+          message = FeedbackMessage.default_.text;
+      }
+      feedbackState = FeedbackState.warning;
+    } else {
+      // All checks passed - document is in good position
+      message = FeedbackMessage.good.text;
+      feedbackState = FeedbackState.success;
+    }
+
+    developer.log('Metadata response: $message');
+
+    _emitFeedback(
+      DetectionFeedback(
+        message: message,
+        checks: checks,
+        connecting: false,
+        connected: true,
+        analyzing: false,
+        feedbackState: feedbackState,
+        bbox: _lastBbox, // Use last known bbox
+        progress: _progress,
+        totalFramesNeeded: _totalFramesNeeded,
+        framesCaptured: _framesCaptured,
+        spoofType: _spoofType,
+      ),
+    );
+  }
+
+  /// Handles captured status response from WebSocket
+  ///
+  /// Updates frame capture progress and provides feedback to user
+  void _handleCapturedResponse(Map<String, dynamic> data) {
+    // Update frame counts
+    _totalFramesNeeded = (data['total_frames_needed'] as num?)?.toDouble() ?? 3;
+    _framesCaptured = (data['frames_captured'] as num?)?.toDouble() ?? 0;
+
+    // Calculate progress ratio (clamped between 0 and 1)
+    final target = _totalFramesNeeded;
+    final ratio = (_framesCaptured / target).clamp(0.0, 1.0);
+    _progress = ratio;
+
+    developer.log(
+      'Captured: $_framesCaptured/$_totalFramesNeeded frames (${(_progress * 100).toStringAsFixed(0)}%)',
+    );
+
+    // Emit feedback with "inside" message
+    _emitFeedback(
+      DetectionFeedback(
+        message: FeedbackMessage.good.text, // "inside" message
+        checks: _lastChecks,
+        connecting: false,
+        connected: true,
+        analyzing: false,
+        feedbackState: FeedbackState.success,
+        bbox: _lastBbox,
+        progress: _progress,
+        totalFramesNeeded: _totalFramesNeeded,
+        framesCaptured: _framesCaptured,
+        spoofType: _spoofType,
+      ),
+    );
+  }
+
+  /// Handles complete status response from WebSocket
+  ///
+  /// Processes the final captured image and spoof detection result
+  Future<void> _handleCompleteResponse(Map<String, dynamic> data) async {
+    try {
+      // Set spoof type from spoof.label
+      final spoofData = data['spoof'];
+      if (spoofData is Map<String, dynamic>) {
+        _spoofType = spoofData['label'] as String?;
+        developer.log('Spoof detection result: $_spoofType');
+      }
+
+      // Process final captured image
+      final bestImage = data['best_image'] as String?;
+
+      if (bestImage != null && bestImage.isNotEmpty) {
+        try {
+          // Remove data URL header if present, or get raw base64
+          String base64String = bestImage;
+          if (bestImage.startsWith('data:')) {
+            // Extract base64 part after comma
+            final parts = bestImage.split(',');
+            if (parts.length > 1) {
+              base64String = parts[1];
+            }
+          }
+
+          // Decode base64 to bytes
+          final bytes = base64Decode(base64String);
+
+          // Create temporary file path
+          final tempDir = Directory.systemTemp;
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          final filePath = '${tempDir.path}/cropped_image_$timestamp.jpg';
+
+          // Write bytes to file
+          final file = File(filePath);
+          await file.writeAsBytes(bytes);
+
+          // Create XFile and emit through capture stream
+          final xFile = XFile(filePath);
+          _captureController.add(xFile);
+
+          developer.log('Complete: Best image saved and emitted');
+        } catch (e) {
+          developer.log('Error processing best_image: $e');
+        }
+      } else {
+        developer.log('Warning: best_image missing in complete status');
+      }
+    } catch (e) {
+      developer.log('Error handling complete response: $e');
+    }
+  }
+
   /// Starts the main detection loop for continuous document analysis
   ///
   /// Initiates periodic image processing and ML backend communication at
@@ -805,7 +1117,65 @@ class CameraService {
   /// - Device processing performance
   /// - Network response times
   /// - Overall system load
+
   void _startDetectionLoop() {
+    _detectionTimer?.cancel();
+    _startImageStream(); // Start image stream for silent capture
+
+    _detectionTimer = Timer.periodic(_currentDetectionInterval, (_) async {
+      if (_disposed || !_wsService.isConnected || _waitingForResponse) return;
+
+      // Frame rate limiting
+      final now = DateTime.now();
+      if (_lastFrameTime != null &&
+          now.difference(_lastFrameTime!).inMilliseconds <
+              _currentDetectionInterval.inMilliseconds) {
+        return;
+      }
+      _lastFrameTime = now;
+
+      _pendingRequest = true;
+      _requestStartTime = DateTime.now(); // Track request start time
+
+      try {
+        if (_latestCameraImage != null) {
+          final arrayBuffer = await _processCameraImage(_latestCameraImage!);
+          if (arrayBuffer != null && !_disposed) {
+            // developer.log(
+            //   'Sending optimized image data: ${arrayBuffer.length} bytes',
+            // );
+
+            _wsService.send(arrayBuffer);
+            _imagesSentCount++;
+
+            // Set timeout to auto-reset if no response received
+            _responseTimeoutTimer = Timer.periodic(const Duration(seconds: 2), (
+              _,
+            ) {
+              if (!_disposed || _waitingForResponse) return;
+              developer.log(
+                'No response received in 5 seconds, reseting and continuing...',
+              );
+              _waitingForResponse = true;
+              _imagesSentCount = 0;
+            });
+          } else {
+            _pendingRequest = false;
+            _waitingForResponse = false;
+          }
+        } else {
+          _pendingRequest = false;
+          _waitingForResponse = false;
+        }
+      } catch (e) {
+        _pendingRequest = false;
+        _waitingForResponse = false;
+        developer.log('Error processing camera image: $e');
+      }
+    });
+  }
+
+  void _startDetectionLoopDeprecated() {
     _detectionTimer?.cancel();
     _startImageStream(); // Start image stream for silent capture
 
@@ -831,6 +1201,19 @@ class CameraService {
             // developer.log(
             //   'Sending optimized image data: ${arrayBuffer.length} bytes',
             // );
+
+            // Set timeout to auto-reset if no response received
+            _responseTimeoutTimer = Timer.periodic(const Duration(seconds: 5), (
+              _,
+            ) {
+              if (!_disposed || _waitingForResponse) return;
+              developer.log(
+                'No response receive in 5 seconds, reseting and continuing...',
+              );
+              _waitingForResponse = false;
+              _imagesSentCount++;
+            });
+
             _wsService.send(arrayBuffer);
           } else {
             _pendingRequest = false;
@@ -900,10 +1283,8 @@ class CameraService {
     try {
       // Convert CameraImage to PNG bytes
       final pngBytes = await _convertCameraImageToPng(image);
-      final croppedBytes = await _cropImageForDetection(pngBytes);
-      final optimizedBytes = await _applyAdaptiveImageOptimization(
-        croppedBytes,
-      );
+      // final croppedBytes = await _cropImageForDetection(pngBytes); //skip cropping for now
+      final optimizedBytes = await _applyAdaptiveImageOptimization(pngBytes);
 
       return optimizedBytes;
     } catch (e) {
@@ -1751,6 +2132,7 @@ class CameraService {
     _wsMessageSub?.cancel();
     _wsErrorSub?.cancel();
     _periodicCaptureTimer?.cancel();
+    _responseTimeoutTimer?.cancel();
     _stopImageStream(); // Ensure stream is stopped
     disconnect();
 

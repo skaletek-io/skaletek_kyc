@@ -131,7 +131,7 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
 
     // Only initialize WebSocket service for LIVE camera captures
     if (docSrc == 'LIVE') {
-      _wsService = WebSocketService();
+      _wsService = WebSocketService(environment: widget.kycService.environment);
       // Start connection in background - camera captures will reuse this connection
       _wsService!.connect();
 

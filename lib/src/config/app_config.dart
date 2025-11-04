@@ -86,12 +86,12 @@ class AppConfig {
   static String getMlSocketUrl(String environment) {
     switch (environment) {
       case 'prod':
-        return 'wss://ml.dev.skaletek.io/detection/ws';
+        return 'wss://ml.dev.skaletek.io/live/detection/ws';
       case 'sandbox':
-        return 'wss://ml.dev.skaletek.io/detection/ws';
+        return 'wss://ml.dev.skaletek.io/live/detection/ws';
       case 'dev':
       default:
-        return 'wss://ml.dev.skaletek.io/detection/ws';
+        return 'wss://ml.dev.skaletek.io/live/detection/ws';
     }
   }
 }

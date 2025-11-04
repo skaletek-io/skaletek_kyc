@@ -52,6 +52,7 @@ import 'detection_checks_list.dart';
 import 'feedback_box.dart';
 import 'camera_service.dart';
 import 'package:skaletek_kyc/src/services/websocket_service.dart';
+import 'package:skaletek_kyc/src/config/app_config.dart';
 
 /// KYC Camera Capture Widget
 ///
@@ -64,6 +65,8 @@ import 'package:skaletek_kyc/src/services/websocket_service.dart';
 ///   and cropped. Receives an [XFile] containing the processed document image.
 /// - [wsService]: Optional WebSocket service instance. If not provided, the widget
 ///   will create and manage its own service instance.
+/// - [environment]: Environment string for WebSocket URL ('dev', 'prod', 'sandbox').
+///   Only used if [wsService] is not provided. Defaults to 'dev'.
 ///
 /// ## Behavior
 /// - Automatically initializes camera with high resolution
@@ -81,7 +84,16 @@ class KYCCameraCapture extends StatefulWidget {
   /// If null, the widget creates and manages its own service instance
   final WebSocketService? wsService;
 
-  const KYCCameraCapture({super.key, this.onCapture, this.wsService});
+  /// Environment string for WebSocket URL ('dev', 'prod', 'sandbox')
+  /// Only used if [wsService] is not provided. Defaults to 'dev'.
+  final String? environment;
+
+  const KYCCameraCapture({
+    super.key,
+    this.onCapture,
+    this.wsService,
+    this.environment,
+  });
 
   @override
   State<KYCCameraCapture> createState() => _KYCCameraCaptureState();
@@ -235,6 +247,9 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
       targetRect: _targetRect,
       screenSize: _screenSize, // Add screen size parameter
       wsService: widget.wsService, // Pass WebSocket service from widget
+      environment:
+          widget.environment ??
+          SkaletekEnvironment.dev.value, // Pass environment for WebSocket URL
       onChecks: (checks) {
         // Detection checks callback - could be used for additional logic
       },
@@ -347,16 +362,39 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
               height: _rectHeight,
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(
+                    color:
+                        (_feedback.spoofType == 'print' ||
+                            _feedback.spoofType == 'screen')
+                        ? Colors.red
+                        : Colors.white,
+                    width: 2,
+                  ),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
 
+            // Progress border overlay
+            if (_feedback.progress > 0)
+              Positioned(
+                left: (_screenSize.width - _rectWidth) / 2,
+                top: _rectTop,
+                width: _rectWidth,
+                height: _rectHeight,
+                child: CustomPaint(
+                  painter: _ProgressBorderPainter(
+                    progress: _feedback.progress,
+                    borderRadius: 10,
+                  ),
+                ),
+              ),
+
             // Detection checks list
             DetectionChecksList(
               detectionChecks: _feedback.checks,
               top: _rectTop + _rectHeight + 24,
+              spoofType: _feedback.spoofType,
             ),
 
             // Feedback box
@@ -546,4 +584,218 @@ class _RectangleOverlayPainter extends CustomPainter {
 
   @override
   int get hashCode => rect.hashCode;
+}
+
+/// Custom painter that renders a progress border around the rectangle
+///
+/// Draws a colored border that progresses clockwise around the rectangle
+/// to visually indicate capture progress from 0% to 100%.
+///
+/// ## Parameters
+/// - [progress]: Progress value from 0.0 to 1.0
+/// - [borderRadius]: Border radius to match the rectangle corners
+class _ProgressBorderPainter extends CustomPainter {
+  final double progress;
+  final double borderRadius;
+
+  _ProgressBorderPainter({required this.progress, required this.borderRadius});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+
+    final paint = Paint()
+      ..color = Color(0xFF1261C1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+
+    // Calculate the path for the border
+    final path = Path();
+
+    // Calculate perimeter segments
+    final width = size.width;
+    final height = size.height;
+    final cornerRadius = borderRadius;
+
+    // Approximate perimeter (straight edges + corner arcs)
+    final perimeter =
+        2 * (width + height) - 8 * cornerRadius + 2 * 3.14159 * cornerRadius;
+    final progressLength = perimeter * progress.clamp(0.0, 1.0);
+
+    double currentLength = 0;
+
+    // Start from top-left corner, going clockwise
+    // Top edge (left to right)
+    final topEdgeLength = width - 2 * cornerRadius;
+    if (progressLength > currentLength) {
+      final segmentProgress = (progressLength - currentLength).clamp(
+        0.0,
+        topEdgeLength,
+      );
+      path.moveTo(cornerRadius, 0);
+      path.lineTo(cornerRadius + segmentProgress, 0);
+      currentLength += topEdgeLength;
+    }
+
+    // Top-right corner
+    if (progressLength > currentLength) {
+      final cornerArcLength = 3.14159 * cornerRadius / 2;
+      final segmentProgress =
+          ((progressLength - currentLength) / cornerArcLength).clamp(0.0, 1.0);
+      final sweepAngle = segmentProgress * 3.14159 / 2;
+
+      if (path.getBounds().isEmpty) {
+        path.moveTo(width - cornerRadius, 0);
+      }
+
+      path.arcTo(
+        Rect.fromLTWH(
+          width - 2 * cornerRadius,
+          0,
+          2 * cornerRadius,
+          2 * cornerRadius,
+        ),
+        -3.14159 / 2,
+        sweepAngle,
+        false,
+      );
+      currentLength += cornerArcLength;
+    }
+
+    // Right edge (top to bottom)
+    final rightEdgeLength = height - 2 * cornerRadius;
+    if (progressLength > currentLength) {
+      final segmentProgress = (progressLength - currentLength).clamp(
+        0.0,
+        rightEdgeLength,
+      );
+
+      if (path.getBounds().isEmpty) {
+        path.moveTo(width, cornerRadius);
+      }
+
+      path.lineTo(width, cornerRadius + segmentProgress);
+      currentLength += rightEdgeLength;
+    }
+
+    // Bottom-right corner
+    if (progressLength > currentLength) {
+      final cornerArcLength = 3.14159 * cornerRadius / 2;
+      final segmentProgress =
+          ((progressLength - currentLength) / cornerArcLength).clamp(0.0, 1.0);
+      final sweepAngle = segmentProgress * 3.14159 / 2;
+
+      if (path.getBounds().isEmpty) {
+        path.moveTo(width, height - cornerRadius);
+      }
+
+      path.arcTo(
+        Rect.fromLTWH(
+          width - 2 * cornerRadius,
+          height - 2 * cornerRadius,
+          2 * cornerRadius,
+          2 * cornerRadius,
+        ),
+        0,
+        sweepAngle,
+        false,
+      );
+      currentLength += cornerArcLength;
+    }
+
+    // Bottom edge (right to left)
+    final bottomEdgeLength = width - 2 * cornerRadius;
+    if (progressLength > currentLength) {
+      final segmentProgress = (progressLength - currentLength).clamp(
+        0.0,
+        bottomEdgeLength,
+      );
+
+      if (path.getBounds().isEmpty) {
+        path.moveTo(width - cornerRadius, height);
+      }
+
+      path.lineTo(width - cornerRadius - segmentProgress, height);
+      currentLength += bottomEdgeLength;
+    }
+
+    // Bottom-left corner
+    if (progressLength > currentLength) {
+      final cornerArcLength = 3.14159 * cornerRadius / 2;
+      final segmentProgress =
+          ((progressLength - currentLength) / cornerArcLength).clamp(0.0, 1.0);
+      final sweepAngle = segmentProgress * 3.14159 / 2;
+
+      if (path.getBounds().isEmpty) {
+        path.moveTo(cornerRadius, height);
+      }
+
+      path.arcTo(
+        Rect.fromLTWH(
+          0,
+          height - 2 * cornerRadius,
+          2 * cornerRadius,
+          2 * cornerRadius,
+        ),
+        3.14159 / 2,
+        sweepAngle,
+        false,
+      );
+      currentLength += cornerArcLength;
+    }
+
+    // Left edge (bottom to top)
+    final leftEdgeLength = height - 2 * cornerRadius;
+    if (progressLength > currentLength) {
+      final segmentProgress = (progressLength - currentLength).clamp(
+        0.0,
+        leftEdgeLength,
+      );
+
+      if (path.getBounds().isEmpty) {
+        path.moveTo(0, height - cornerRadius);
+      }
+
+      path.lineTo(0, height - cornerRadius - segmentProgress);
+      currentLength += leftEdgeLength;
+    }
+
+    // Top-left corner
+    if (progressLength > currentLength) {
+      final cornerArcLength = 3.14159 * cornerRadius / 2;
+      final segmentProgress =
+          ((progressLength - currentLength) / cornerArcLength).clamp(0.0, 1.0);
+      final sweepAngle = segmentProgress * 3.14159 / 2;
+
+      if (path.getBounds().isEmpty) {
+        path.moveTo(0, cornerRadius);
+      }
+
+      path.arcTo(
+        Rect.fromLTWH(0, 0, 2 * cornerRadius, 2 * cornerRadius),
+        3.14159,
+        sweepAngle,
+        false,
+      );
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_ProgressBorderPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.borderRadius != borderRadius;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is _ProgressBorderPainter &&
+        other.progress == progress &&
+        other.borderRadius == borderRadius;
+  }
+
+  @override
+  int get hashCode => Object.hash(progress, borderRadius);
 }

@@ -20,6 +20,10 @@ class KYCService {
 
   KYCStateProvider? get stateProvider => _stateProvider;
 
+  /// Get the current environment value
+  String get environment =>
+      _config?.environment.value ?? SkaletekEnvironment.dev.value;
+
   /// Show a snackbar message
   void showSnackbar(String message) {
     if (!_disposed && _onShowSnackbar != null) {
