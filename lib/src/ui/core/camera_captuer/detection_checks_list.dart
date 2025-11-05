@@ -16,7 +16,7 @@ class DetectionChecksList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final checks = <List<dynamic>>[
-      ['darkness', detectionChecks.darkness],
+      ['contrast', detectionChecks.contrast],
       ['brightness', detectionChecks.brightness],
       ['blur', detectionChecks.blur],
       ['glare', detectionChecks.glare],

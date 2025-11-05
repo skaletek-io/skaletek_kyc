@@ -155,10 +155,10 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
 
   // Snackbar spam prevention
   /// Timestamp of last snackbar shown to prevent spam
-  // DateTime? _lastSnackbarTime;
+  DateTime? _lastSnackbarTime;
 
   /// Minimum interval between snackbars to prevent UI spam
-  // static const _minSnackbarInterval = Duration(milliseconds: 500);
+  static const _minSnackbarInterval = Duration(milliseconds: 500);
 
   @override
   void initState() {
@@ -260,6 +260,7 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
       if (!mounted || !_isActive) return;
 
       // Show snackbar for testing purposes
+      // _showFeedbackSnackbar(feedback);
 
       // Throttle UI updates to prevent excessive rebuilds
       final now = DateTime.now();
@@ -301,6 +302,65 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
   /// - Positioned above capture button for optimal UX
   /// - Color-coded background based on feedback type
   /// - Automatic clearing of previous snackbars
+
+  // void _showFeedbackSnackbar(DetectionFeedback feedback) {
+  //   // return;
+  //   // Throttle snackbar to prevent spam
+  //   final now = DateTime.now();
+  //   if (_lastSnackbarTime != null &&
+  //       now.difference(_lastSnackbarTime!).inMilliseconds <
+  //           _minSnackbarInterval.inMilliseconds) {
+  //     return;
+  //   }
+  //   _lastSnackbarTime = now;
+
+  //   // Extract bbox information from feedback
+  //   String framesInfo =
+  //       '${feedback.framesCaptured}/${feedback.totalFramesNeeded} frames';
+
+  //   // Check if feedback has bbox information
+  //   // This assumes your DetectionFeedback model has bbox data
+  //   // You may need to adjust this based on your actual model structure
+
+  //   // Create snackbar content
+  //   final snackbarContent = '${feedback.message}\n$framesInfo';
+
+  //   // Determine snackbar color based on feedback state
+  //   Color backgroundColor;
+  //   if (feedback.connecting) {
+  //     backgroundColor = Colors.blue;
+  //   } else if (feedback.message.contains('error') ||
+  //       feedback.message.contains('Error')) {
+  //     backgroundColor = Colors.red;
+  //   } else {
+  //     backgroundColor = Colors.orange;
+  //   }
+
+  //   // Clear any existing snackbars
+  //   ScaffoldMessenger.of(context).clearSnackBars();
+
+  //   // Show new snackbar
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text(
+  //         snackbarContent,
+  //         style: TextStyle(color: Colors.white, fontSize: 12),
+  //       ),
+  //       backgroundColor: backgroundColor,
+  //       duration: Duration(seconds: 2),
+  //       behavior: SnackBarBehavior.floating,
+  //       margin: EdgeInsets.only(
+  //         bottom: 120, // Position above capture button
+  //         left: 16,
+  //         right: 16,
+  //       ),
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  //     ),
+  //   );
+
+  //   // Log for debugging
+  //   developer.log('Feedback: ${feedback.message}, BBox: $framesInfo');
+  // }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

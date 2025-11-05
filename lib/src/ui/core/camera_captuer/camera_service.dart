@@ -5,6 +5,13 @@
 /// machine learning backends to provide live feedback on document positioning,
 /// quality, and automatic capture capabilities.
 ///
+/// ## 🐛 DEBUG FEATURE ACTIVE
+/// **WARNING**: This file contains a debugging feature that saves the 5th image to device storage.
+/// To remove before production:
+/// 1. Delete _debugSaveImageToDevice() function (line ~1187-1223)
+/// 2. Delete _debugImageCounter field (line ~539)
+/// 3. Remove debug call in _startDetectionLoop (lines ~1119-1122)
+///
 /// ## Core Features
 /// - **Real-time Detection**: Continuous analysis of camera frames for document presence
 /// - **WebSocket Integration**: Seamless communication with ML backend services
@@ -42,7 +49,7 @@
 ///
 /// ## Detection Quality Checks
 /// - **Brightness**: Optimal lighting conditions
-/// - **Darkness**: Prevents underexposed images
+/// - **Contrast**: Prevents underexposed images
 /// - **Blur**: Ensures sharp, readable documents
 /// - **Glare**: Detects and prevents reflective surfaces
 /// - **Position**: Validates document placement within target area
@@ -87,6 +94,8 @@ import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
+import 'package:open_file/open_file.dart';
 
 import 'package:skaletek_kyc/src/models/kyc_api_models.dart';
 import 'package:skaletek_kyc/src/utils/image_cropper.dart';
@@ -225,7 +234,7 @@ enum FeedbackMessage {
 
   blurQuality('Keep the camera steady to avoid blur.'),
 
-  darkness('Try moving to a brighter area'),
+  contrastQuality('Try moving to a brighter area'),
 
   brightnessQuality('Move to a brighter area'),
 
@@ -285,13 +294,19 @@ class DetectionFeedback {
   final double progress;
 
   /// Total number of frames needed for capture
-  final double totalFramesNeeded;
+  final int totalFramesNeeded;
 
   /// Number of frames captured so far
-  final double framesCaptured;
+  final int framesCaptured;
 
   /// Spoof detection type ('real', 'screen', 'print', or null)
   final String? spoofType;
+
+  /// Type of the message
+  final String? type;
+
+  /// Status of the message
+  final String? status;
 
   /// Creates a detection feedback instance with the specified parameters
   DetectionFeedback({
@@ -303,9 +318,11 @@ class DetectionFeedback {
     this.bbox,
     this.feedbackState = FeedbackState.info,
     this.progress = 0.0,
-    this.totalFramesNeeded = 0.0,
-    this.framesCaptured = 0.0,
+    this.totalFramesNeeded = 0,
+    this.framesCaptured = 0,
     this.spoofType,
+    this.type,
+    this.status,
   });
 
   @override
@@ -509,8 +526,6 @@ class CameraService {
   /// Timer for periodic capture state validation
   Timer? _periodicCaptureTimer;
 
-  Timer? _responseTimeoutTimer;
-
   // =============================================================================
   // STATE MANAGEMENT
   // =============================================================================
@@ -518,18 +533,23 @@ class CameraService {
   /// Flag indicating if a detection request is currently pending
   bool _pendingRequest = false;
 
-  double _framesCaptured = 0;
+  int _framesCaptured = 0;
 
-  double _totalFramesNeeded = 3;
+  int _totalFramesNeeded = 3;
 
   double _progress = 0;
+
+  int _imageSentCount = 0;
+
+  final int _totalImageToSend = 3;
+
+  // DEBUG: Counter for debugging image download
+  int _debugImageCounter = 0;
 
   /// Flag indicating if the service has been disposed
   bool _disposed = false;
 
   String? _spoofType;
-
-  bool _waitingForResponse = false;
 
   /// Timestamp of the last processed frame for rate limiting
   DateTime? _lastFrameTime;
@@ -590,6 +610,11 @@ class CameraService {
            WebSocketService(
              environment: environment ?? SkaletekEnvironment.dev.value,
            ) {
+    // Apply optimized settings by default for better real-device performance
+    _currentImageQuality = 0.5; // 50% quality
+    _currentImageScale = 0.6; // 60% scale
+    _currentDetectionInterval = Duration(milliseconds: 150); // 150ms interval
+
     _initWebSocketListeners();
     _startPerformanceMonitoring();
   }
@@ -744,18 +769,14 @@ class CameraService {
       _wsService.connect();
     }
 
+    //Deprecated
     //Start periodic capture check as additional fallback
-    _startPeriodicCaptureCheck();
+    // _startPeriodicCaptureCheck();
     // Note: For externally provided services, status is already handled in _handleInitialWebSocketStatus
   }
 
   void _onWsMessage(Map<String, dynamic> data) {
     if (_disposed) return;
-
-    if (_waitingForResponse) {
-      _waitingForResponse = false;
-      _responseTimeoutTimer?.cancel();
-    }
 
     final processingStart = DateTime.now();
 
@@ -768,7 +789,10 @@ class CameraService {
       // developer.log('Network response time: ${networkResponseTime}ms');
     }
 
-    _pendingRequest = false;
+    if (_pendingRequest) {
+      _pendingRequest = false;
+      _imageSentCount = 0;
+    }
 
     try {
       // developer.log('Received message: $data');
@@ -817,6 +841,11 @@ class CameraService {
       checks = const DetectionChecks();
     }
 
+    // developer.log(
+    //   'Checks: blur=${checks.blur}, glare=${checks.glare}, '
+    //   'brightness=${checks.brightness}, contrast=${checks.contrast}',
+    // );
+
     onChecks(checks);
     _lastChecks = checks;
 
@@ -835,9 +864,6 @@ class CameraService {
     } else if (checks.brightness == DetectionCheckResult.fail ||
         checks.brightness == DetectionCheckResult.warn) {
       falsyCheck = 'brightness';
-    } else if (checks.darkness == DetectionCheckResult.fail ||
-        checks.darkness == DetectionCheckResult.warn) {
-      falsyCheck = 'darkness';
     } else if (checks.contrast == DetectionCheckResult.fail ||
         checks.contrast == DetectionCheckResult.warn) {
       falsyCheck = 'contrast';
@@ -869,8 +895,8 @@ class CameraService {
         case 'brightness':
           message = FeedbackMessage.brightnessQuality.text;
           break;
-        case 'darkness':
-          message = FeedbackMessage.darkness.text;
+        case 'contrast':
+          message = FeedbackMessage.contrastQuality.text;
           break;
         default:
           message = FeedbackMessage.default_.text;
@@ -879,7 +905,7 @@ class CameraService {
     } else {
       // All checks passed - document is in good position
       message = FeedbackMessage.good.text;
-      feedbackState = FeedbackState.success;
+      feedbackState = FeedbackState.info;
     }
 
     //developer.log('Metadata response: $message');
@@ -897,6 +923,8 @@ class CameraService {
         totalFramesNeeded: _totalFramesNeeded,
         framesCaptured: _framesCaptured,
         spoofType: _spoofType,
+        type: data['type'],
+        status: data['status'],
       ),
     );
   }
@@ -906,8 +934,8 @@ class CameraService {
   /// Updates frame capture progress and provides feedback to user
   void _handleCapturedResponse(Map<String, dynamic> data) {
     // Update frame counts
-    _totalFramesNeeded = (data['total_frames_needed'] as num?)?.toDouble() ?? 3;
-    _framesCaptured = (data['frames_captured'] as num?)?.toDouble() ?? 0;
+    _totalFramesNeeded = (data['total_frames_needed'] as num?)?.toInt() ?? 3;
+    _framesCaptured = (data['frames_captured'] as num?)?.toInt() ?? 0;
 
     // Calculate progress ratio (clamped between 0 and 1)
     final target = _totalFramesNeeded;
@@ -932,6 +960,8 @@ class CameraService {
         totalFramesNeeded: _totalFramesNeeded,
         framesCaptured: _framesCaptured,
         spoofType: _spoofType,
+        type: data['type'],
+        status: data['status'],
       ),
     );
   }
@@ -939,55 +969,110 @@ class CameraService {
   /// Handles complete status response from WebSocket
   ///
   /// Processes the final captured image and spoof detection result
+  /// Mirrors the React implementation pattern for consistency
   Future<void> _handleCompleteResponse(Map<String, dynamic> data) async {
     try {
-      // Set spoof type from spoof.label
+      // Set spoof type from spoof.label (same as React: data?.spoof.label)
       final spoofData = data['spoof'];
       if (spoofData is Map<String, dynamic>) {
         _spoofType = spoofData['label'] as String?;
         // developer.log('Spoof detection result: $_spoofType');
       }
 
-      // Process final captured image
+      // Process final captured image (same as React: data?.best_image)
       final bestImage = data['best_image'] as String?;
 
       if (bestImage != null && bestImage.isNotEmpty) {
         try {
-          // Remove data URL header if present, or get raw base64
-          String base64String = bestImage;
+          // Ensure image has proper data URL format (same as React pattern)
+          String base64String;
+          String mimeType = 'image/jpeg'; // Default to JPEG like React
+
           if (bestImage.startsWith('data:')) {
-            // Extract base64 part after comma
+            // Has header - extract base64 and mime type
             final parts = bestImage.split(',');
             if (parts.length > 1) {
               base64String = parts[1];
+              // Extract mime type from header (e.g., "data:image/png;base64,")
+              final headerMatch = RegExp(r'data:([^;]+)').firstMatch(parts[0]);
+              if (headerMatch != null) {
+                mimeType = headerMatch.group(1) ?? 'image/jpeg';
+              }
+            } else {
+              base64String = bestImage;
             }
+          } else {
+            // No header - raw base64 (same as React: add data:image/jpeg;base64, prefix)
+            base64String = bestImage;
+            // developer.log('Best image: raw base64 (no data URL header)');
           }
 
           // Decode base64 to bytes
           final bytes = base64Decode(base64String);
 
-          // Create temporary file path
+          // Detect actual image format from magic bytes for proper extension
+          String extension =
+              '.jpg'; // Default to jpg (same as React: "cropped_image.jpg")
+          if (bytes.length >= 8) {
+            // Check for PNG signature (89 50 4E 47)
+            if (bytes[0] == 0x89 &&
+                bytes[1] == 0x50 &&
+                bytes[2] == 0x4E &&
+                bytes[3] == 0x47) {
+              extension = '.png';
+            }
+            // Check for JPEG signature (FF D8)
+            else if (bytes[0] == 0xFF && bytes[1] == 0xD8) {
+              extension = '.jpg';
+            }
+          }
+
+          // Create temporary file path (same as React: "cropped_image.jpg")
           final tempDir = Directory.systemTemp;
           final timestamp = DateTime.now().millisecondsSinceEpoch;
-          final filePath = '${tempDir.path}/cropped_image_$timestamp.jpg';
+          final filePath = '${tempDir.path}/cropped_image_$timestamp$extension';
 
-          // Write bytes to file
+          // Write bytes to file (same as React: base64ToFile)
           final file = File(filePath);
           await file.writeAsBytes(bytes);
 
-          // Create XFile and emit through capture stream
+          // Create XFile and emit through capture stream (same as React: setCroppedFile)
           final xFile = XFile(filePath);
           _captureController.add(xFile);
 
-          // developer.log('Complete: Best image saved and emitted');
+          // developer.log(
+          //   'Complete: Best image saved as $extension (${bytes.length} bytes, mime: $mimeType)',
+          // );
+
+          _emitFeedback(
+            DetectionFeedback(
+              message: FeedbackMessage.captured.text,
+              checks: _lastChecks,
+              connecting: false,
+              connected: true,
+              analyzing: false,
+              feedbackState: FeedbackState.success,
+              bbox: _lastBbox,
+              progress: _progress,
+              totalFramesNeeded: _totalFramesNeeded,
+              framesCaptured: _framesCaptured,
+              spoofType: _spoofType,
+              type: data['type'],
+              status: data['status'],
+            ),
+          );
         } catch (e) {
-          developer.log('Error processing best_image: $e');
+          developer.log('Error cropping image: $e', error: e);
         }
       } else {
-        developer.log('Warning: best_image missing in complete status');
+        // Same as React: console.warn("best_image missing in complete status")
+        developer.log(
+          'Warning: best_image missing in complete status',
+          level: 900, // Warning level
+        );
       }
     } catch (e) {
-      developer.log('Error handling complete response: $e');
+      developer.log('Error handling complete response: $e', error: e);
     }
   }
 
@@ -1025,7 +1110,6 @@ class CameraService {
       }
       _lastFrameTime = now;
 
-      _pendingRequest = true;
       _requestStartTime = DateTime.now(); // Track request start time
 
       try {
@@ -1037,27 +1121,29 @@ class CameraService {
             // );
 
             _wsService.send(arrayBuffer);
-            // Set timeout to auto-reset if no response received
-            _responseTimeoutTimer = Timer.periodic(const Duration(seconds: 2), (
-              _,
-            ) {
-              if (!_disposed || _waitingForResponse) return;
-              // developer.log(
-              //   'No response received in 5 seconds, reseting and continuing...',
-              // );
-              _waitingForResponse = true;
-            });
+            _imageSentCount++;
+
+            // DEBUG: Save 5th image for debugging purposes
+            // _debugImageCounter++;
+            // if (_debugImageCounter == 5) {
+            //   developer.log("debugging image saved $_debugImageCounter");
+            //   await _debugSaveImageToDevice(arrayBuffer);
+            // }
+
+            // developer.log('Image sent count: $_imageSentCount');
+
+            if (_imageSentCount >= _totalImageToSend) {
+              _pendingRequest = true;
+              _imageSentCount = 0;
+            }
           } else {
             _pendingRequest = false;
-            _waitingForResponse = false;
           }
         } else {
           _pendingRequest = false;
-          _waitingForResponse = false;
         }
       } catch (e) {
         _pendingRequest = false;
-        _waitingForResponse = false;
         developer.log('Error processing camera image: $e');
       }
     });
@@ -1092,6 +1178,77 @@ class CameraService {
     }
   }
 
+  // =============================================================================
+  // DEBUG FUNCTIONS - FOR DEVELOPMENT ONLY
+  // =============================================================================
+
+  /// DEBUG ONLY: Saves the EXACT image bytes being sent to the endpoint
+  ///
+  /// This saves the IDENTICAL data that gets transmitted over the WebSocket.
+  /// No conversion, no modification - byte-for-byte what the endpoint receives.
+  ///
+  /// Current settings (as of line ~613):
+  /// - Scale: 60% of camera resolution
+  /// - Quality: 50% JPEG compression
+  /// - Format: JPEG
+  ///
+  /// The image is saved to:
+  /// - Android: /storage/emulated/0/Pictures/SkaletekKYC/
+  /// - iOS: App's documents directory (accessible via Files app)
+  ///
+  /// The image will appear in your Photos/Gallery app on Android.
+  ///
+  /// To remove this debug feature, simply delete:
+  /// 1. This function
+  /// 2. The _debugImageCounter field (line ~546)
+  /// 3. The debug call in _startDetectionLoop (lines ~1125-1130)
+  Future<void> _debugSaveImageToDevice(Uint8List imageBytes) async {
+    try {
+      // Save to temporary directory
+      final tempDir = Directory.systemTemp;
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final savePath = '${tempDir.path}/debug_kyc_preview_$timestamp.jpg';
+
+      // Write the JPEG bytes to file
+      final file = File(savePath);
+      await file.writeAsBytes(imageBytes);
+
+      developer.log(
+        '🐛 DEBUG: EXACT ENDPOINT IMAGE saved!\n'
+        '   📍 Path: $savePath\n'
+        '   📦 Size: ${imageBytes.length} bytes (${(imageBytes.length / 1024).toStringAsFixed(2)} KB)\n'
+        '   🎨 Quality: ${(_currentImageQuality * 100).round()}% JPEG compression\n'
+        '   📏 Scale: ${(_currentImageScale * 100).round()}% of camera resolution\n'
+        '   📸 Format: JPEG\n'
+        '   \n'
+        '   ✅ This is BYTE-FOR-BYTE what the endpoint receives!',
+      );
+
+      // Stop detection loop
+      _detectionTimer?.cancel();
+      _stopImageStream();
+      developer.log('🐛 DEBUG: Detection stopped');
+
+      // Open the image in system photo viewer/gallery
+      final result = await OpenFile.open(savePath);
+      developer.log(
+        '🐛 DEBUG: Opening image in photo viewer - ${result.message}',
+      );
+
+      if (result.type != ResultType.done) {
+        developer.log(
+          '⚠️ DEBUG: Could not open image viewer: ${result.message}',
+        );
+        // Fallback: emit to capture stream for in-app preview
+        final xFile = XFile(savePath);
+        _captureController.add(xFile);
+        developer.log('🐛 DEBUG: Fallback - emitted to capture stream');
+      }
+    } catch (e) {
+      developer.log('🐛 DEBUG: Error opening debug image: $e', error: e);
+    }
+  }
+
   /// Processes camera images for ML backend analysis with adaptive optimization
   ///
   /// Executes the complete image processing pipeline to prepare camera frames
@@ -1113,301 +1270,97 @@ class CameraService {
   /// with the next frame rather than breaking the entire pipeline.
   ///
   /// [image] - Raw camera image in YUV420 or BGRA8888 format
-  /// Returns optimized PNG bytes ready for ML backend, or null on error
+  /// Returns optimized JPEG bytes ready for ML backend, or null on error
   Future<Uint8List?> _processCameraImage(CameraImage image) async {
     try {
-      // Convert CameraImage to PNG bytes
-      final pngBytes = await _convertCameraImageToPng(image);
-      // final croppedBytes = await _cropImageForDetection(pngBytes); //skip cropping for now
-      final optimizedBytes = await _applyAdaptiveImageOptimization(pngBytes);
-
-      return optimizedBytes;
+      // Convert CameraImage to JPEG bytes (faster and smaller than PNG)
+      final jpegBytes = await _convertCameraImageToJpeg(image);
+      // JPEG already handles quality compression, no need for additional optimization
+      return jpegBytes;
     } catch (e) {
       developer.log('Error processing camera image: $e');
       return null;
     }
   }
 
-  /// Convert CameraImage to PNG format
-  Future<Uint8List> _convertCameraImageToPng(CameraImage image) async {
+  /// Convert CameraImage to JPEG format with proper color and orientation
+  Future<Uint8List> _convertCameraImageToJpeg(CameraImage image) async {
     try {
-      ui.Image convertedImage;
+      // Use image package directly for better YUV handling
+      img.Image imgImage;
+
       if (image.format.group == ImageFormatGroup.yuv420) {
-        convertedImage = await _convertYUV420ToImage(image);
+        // Convert YUV420 to RGB using image package (handles color correctly)
+        final width = image.width;
+        final height = image.height;
+
+        // Create RGB image from YUV planes
+        imgImage = img.Image(width: width, height: height);
+
+        final yPlane = image.planes[0];
+        final uPlane = image.planes[1];
+        final vPlane = image.planes[2];
+
+        final yBuffer = yPlane.bytes;
+        final uBuffer = uPlane.bytes;
+        final vBuffer = vPlane.bytes;
+
+        final uvRowStride = uPlane.bytesPerRow;
+        final uvPixelStride = uPlane.bytesPerPixel ?? 1;
+
+        for (int h = 0; h < height; h++) {
+          for (int w = 0; w < width; w++) {
+            final uvIndex = uvPixelStride * (w ~/ 2) + uvRowStride * (h ~/ 2);
+            final yIndex = h * yPlane.bytesPerRow + w;
+
+            final y = yBuffer[yIndex];
+            final u = uBuffer[uvIndex];
+            final v = vBuffer[uvIndex];
+
+            // YUV to RGB conversion (proper coefficients)
+            final r = (y + 1.370705 * (v - 128)).clamp(0, 255).round();
+            final g = (y - 0.337633 * (u - 128) - 0.698001 * (v - 128))
+                .clamp(0, 255)
+                .round();
+            final b = (y + 1.732446 * (u - 128)).clamp(0, 255).round();
+
+            imgImage.setPixelRgba(w, h, r, g, b, 255);
+          }
+        }
       } else if (image.format.group == ImageFormatGroup.bgra8888) {
-        convertedImage = await _convertBGRA8888ToImage(image);
+        // Handle BGRA format
+        final plane = image.planes[0];
+        imgImage = img.Image.fromBytes(
+          width: image.width,
+          height: image.height,
+          bytes: plane.bytes.buffer,
+          format: img.Format.uint8,
+          numChannels: 4,
+        );
       } else {
         throw Exception('Unsupported image format: ${image.format}');
       }
 
-      final byteData = await convertedImage.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      return byteData!.buffer.asUint8List();
+      // Apply downsampling if needed
+      if (_currentImageScale < 1.0) {
+        final newWidth = (imgImage.width * _currentImageScale).round();
+        final newHeight = (imgImage.height * _currentImageScale).round();
+        imgImage = img.copyResize(imgImage, width: newWidth, height: newHeight);
+      }
+
+      // Fix orientation: Rotate 90 degrees clockwise for portrait mode
+      // Android cameras in portrait typically need this rotation
+      imgImage = img.copyRotate(imgImage, angle: 90);
+
+      // Encode as JPEG with current quality setting
+      final jpegQuality = (_currentImageQuality * 100).round();
+      final jpegBytes = img.encodeJpg(imgImage, quality: jpegQuality);
+
+      return Uint8List.fromList(jpegBytes);
     } catch (e) {
-      developer.log('Error converting camera image: $e');
+      developer.log('Error converting camera image to JPEG: $e');
       rethrow;
     }
-  }
-
-  /// Convert YUV420 format to PNG
-  Future<ui.Image> _convertYUV420ToImage(CameraImage image) async {
-    final width = image.width;
-    final height = image.height;
-    final yPlane = image.planes[0];
-    final uPlane = image.planes[1];
-    final vPlane = image.planes[2];
-
-    final yBuffer = yPlane.bytes;
-    final uBuffer = uPlane.bytes;
-    final vBuffer = vPlane.bytes;
-
-    final yStride = yPlane.bytesPerRow;
-    final uStride = uPlane.bytesPerRow;
-
-    final rgbaBuffer = Uint8List(width * height * 4);
-
-    for (int y = 0; y < height; y++) {
-      for (int x = 0; x < width; x++) {
-        final uvIndex = (x ~/ 2) + (y ~/ 2) * (uStride ~/ 2);
-        final yIndex = x + y * yStride;
-
-        final yValue = yBuffer[yIndex];
-        final uValue = uBuffer[uvIndex];
-        final vValue = vBuffer[uvIndex];
-
-        // YUV to RGB conversion
-        final r = (yValue + 1.402 * (vValue - 128)).clamp(0, 255).toInt();
-        final g =
-            (yValue - 0.344136 * (uValue - 128) - 0.714136 * (vValue - 128))
-                .clamp(0, 255)
-                .toInt();
-        final b = (yValue + 1.772 * (uValue - 128)).clamp(0, 255).toInt();
-
-        final index = (x + y * width) * 4;
-        rgbaBuffer[index] = r;
-        rgbaBuffer[index + 1] = g;
-        rgbaBuffer[index + 2] = b;
-        rgbaBuffer[index + 3] = 255; // Alpha
-      }
-    }
-
-    final completer = Completer<ui.Image>();
-    ui.decodeImageFromPixels(
-      rgbaBuffer,
-      width,
-      height,
-      ui.PixelFormat.rgba8888,
-      (result) {
-        completer.complete(result);
-      },
-    );
-
-    return completer.future;
-  }
-
-  /// Convert BGRA8888 format to PNG
-  Future<ui.Image> _convertBGRA8888ToImage(CameraImage image) async {
-    final width = image.width;
-    final height = image.height;
-    final plane = image.planes[0];
-    final bytes = plane.bytes;
-    final bytesPerRow = plane.bytesPerRow;
-
-    final completer = Completer<ui.Image>();
-    ui.decodeImageFromPixels(bytes, width, height, ui.PixelFormat.bgra8888, (
-      result,
-    ) {
-      completer.complete(result);
-    }, rowBytes: bytesPerRow);
-
-    return completer.future;
-  }
-
-  /// Crops image using same logic as manual capture but with full width and 25% vertical padding
-  /// Matches the coordinate transformation used in manual capture for consistency
-  Future<Uint8List> _cropImageForDetection(Uint8List originalBytes) async {
-    try {
-      // Convert to PNG and get actual image dimensions (same as manual capture)
-      final pngBytes = await ImageCropper.convertToPng(originalBytes);
-      final codec = await ui.instantiateImageCodec(pngBytes);
-      final frame = await codec.getNextFrame();
-      final actualImage = frame.image;
-      final imageWidth = actualImage.width.toDouble();
-      final imageHeight = actualImage.height.toDouble();
-
-      // Get camera preview size (note: in portrait mode, width/height are swapped)
-      final previewSize = cameraController.value.previewSize!;
-      final cameraWidth = previewSize.height
-          .toDouble(); // Actual camera width in portrait
-      final cameraHeight = previewSize.width
-          .toDouble(); // Actual camera height in portrait
-
-      // Calculate how the camera preview is displayed on screen
-      final screenWidth = screenSize.width;
-      final screenHeight = screenSize.height;
-
-      // Camera preview is typically scaled to fill the screen height and center-cropped for width
-      final previewScale = screenHeight / cameraHeight;
-      final scaledPreviewWidth = cameraWidth * previewScale;
-
-      // If scaled preview is wider than screen, it gets center-cropped
-      final cropOffsetX = (scaledPreviewWidth - screenWidth) / 2;
-
-      // Calculate the actual scaling from screen coordinates to image coordinates
-      final scaleX = imageWidth / cameraWidth;
-      final scaleY = imageHeight / cameraHeight;
-
-      // Create extended target rectangle: full width, target height + padding top/bottom
-      final targetHeight = targetRect.height;
-      final verticalPadding = targetHeight * _kDetectionCropPadding;
-
-      final extendedTargetRect = Rect.fromLTWH(
-        0, // Full width - start from screen left
-        targetRect.top - verticalPadding, // 25% more above target
-        screenWidth, // Full screen width
-        targetRect.height +
-            (2 * verticalPadding), // Target height + 25% top + 25% bottom
-      );
-
-      // Transform extended target rectangle from screen coordinates to camera coordinates
-      final cameraTargetRect = Rect.fromLTWH(
-        (extendedTargetRect.left + cropOffsetX) / previewScale,
-        extendedTargetRect.top / previewScale,
-        extendedTargetRect.width / previewScale,
-        extendedTargetRect.height / previewScale,
-      );
-
-      // Then scale from camera coordinates to actual image coordinates
-      final imageTargetRect = Rect.fromLTWH(
-        cameraTargetRect.left * scaleX,
-        cameraTargetRect.top * scaleY,
-        cameraTargetRect.width * scaleX,
-        cameraTargetRect.height * scaleY,
-      );
-
-      // Clamp to image bounds to prevent cropping outside image
-      final finalCropRect = Rect.fromLTRB(
-        imageTargetRect.left.clamp(0.0, imageWidth),
-        imageTargetRect.top.clamp(0.0, imageHeight),
-        imageTargetRect.right.clamp(0.0, imageWidth),
-        imageTargetRect.bottom.clamp(0.0, imageHeight),
-      );
-
-      // Convert to bbox format for cropping (same as manual capture)
-      final targetBboxList = [
-        finalCropRect.left,
-        finalCropRect.top,
-        finalCropRect.right,
-        finalCropRect.bottom,
-      ];
-
-      // Use ImageCropper.cropImage (same as manual capture)
-      final croppedBytes = await ImageCropper.cropImage(
-        pngBytes,
-        targetBboxList,
-      );
-
-      // developer.log(
-      //   'Detection crop completed: ${originalBytes.length} → ${croppedBytes.length} bytes '
-      //   '(${((croppedBytes.length / originalBytes.length) * 100).toStringAsFixed(1)}% of original)',
-      // );
-
-      return croppedBytes;
-    } catch (e) {
-      developer.log('Error cropping image for detection: $e');
-      return originalBytes; // Return original if cropping fails
-    }
-  }
-
-  /// Transforms bbox coordinates from cropped image space back to screen coordinates
-  /// This accounts for the cropping we did before sending to the server
-  Rect _transformBboxFromCroppedToScreen(Rect croppedBbox) {
-    try {
-      // Calculate the cropping offset we used (same as in _cropImageForDetection)
-      final targetHeight = targetRect.height;
-      final verticalPadding = targetHeight * _kDetectionCropPadding;
-
-      // The server's bbox is relative to the cropped image, so we need to transform it back
-      // to the original screen coordinate system by adding back the crop offsets
-
-      final cropOffsetX = 0.0; // No horizontal offset (full width)
-      final cropOffsetY = targetRect.top - verticalPadding; // Vertical offset
-
-      // Transform bbox from cropped image coordinates to screen coordinates
-      // Simply add back the crop offsets (no scaling needed since coordinates are in same space)
-      final screenBbox = Rect.fromLTWH(
-        croppedBbox.left + cropOffsetX, // Add horizontal crop offset (0)
-        croppedBbox.top + cropOffsetY, // Add vertical crop offset
-        croppedBbox.width, // Width unchanged
-        croppedBbox.height, // Height unchanged
-      );
-
-      // developer.log('Bbox transformation:');
-      // developer.log('  Server bbox (cropped image): $croppedBbox');
-      // developer.log('  Crop offset: X=$cropOffsetX, Y=$cropOffsetY');
-      // developer.log('  Transformed bbox (screen): $screenBbox');
-      // developer.log('  Target rect (screen): $targetRect');
-
-      return screenBbox;
-    } catch (e) {
-      developer.log('Error transforming bbox coordinates: $e');
-      return croppedBbox; // Return original if transformation fails
-    }
-  }
-
-  /// Applies adaptive image optimization based on current network performance
-  Future<Uint8List> _applyAdaptiveImageOptimization(
-    Uint8List originalBytes,
-  ) async {
-    try {
-      final codec = await ui.instantiateImageCodec(originalBytes);
-      final frame = await codec.getNextFrame();
-      final image = frame.image;
-
-      // Apply scaling if needed for poor connections
-      ui.Image processedImage = image;
-      if (_currentImageScale < 1.0) {
-        processedImage = await _resizeImage(image, _currentImageScale);
-        // developer.log(
-        //   'Resized image by ${(_currentImageScale * 100).toStringAsFixed(0)}%',
-        // );
-      }
-
-      // Always use PNG format with adaptive quality and scaling
-      final byteData = await processedImage.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      final optimizedBytes = byteData!.buffer.asUint8List();
-
-      // developer.log(
-      //   'Using PNG format with ${(_currentImageQuality * 100).toStringAsFixed(0)}% quality, '
-      //   '${(_currentImageScale * 100).toStringAsFixed(0)}% scale',
-      // );
-
-      return optimizedBytes;
-    } catch (e) {
-      developer.log('Error in adaptive optimization: $e');
-      // Fallback to original bytes if optimization fails
-      return originalBytes;
-    }
-  }
-
-  Future<ui.Image> _resizeImage(ui.Image image, double scale) async {
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final newWidth = (image.width * scale).round();
-    final newHeight = (image.height * scale).round();
-
-    canvas.drawImageRect(
-      image,
-      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-      Rect.fromLTWH(0, 0, newWidth.toDouble(), newHeight.toDouble()),
-      Paint(),
-    );
-
-    final picture = recorder.endRecording();
-    return await picture.toImage(newWidth, newHeight);
   }
 
   void _startPerformanceMonitoring() {
@@ -1442,7 +1395,7 @@ class CameraService {
     // developer.log(
     //   'Current settings: interval=${_currentDetectionInterval.inMilliseconds}ms, '
     //   'quality=${(_currentImageQuality * 100).toStringAsFixed(0)}%, '
-    //   'scale=${(_currentImageScale * 100).toStringAsFixed(0)}% (PNG format)',
+    //   'scale=${(_currentImageScale * 100).toStringAsFixed(0)}% (JPEG format)',
     // );
   }
 
@@ -1477,7 +1430,7 @@ class CameraService {
       settingsChanged = true;
     }
 
-    // Note: Always using PNG format as requested
+    // Note: Always using JPEG format for optimal performance
 
     if (settingsChanged) {
       // developer.log('Reduced quality for poor connection');
@@ -1514,7 +1467,7 @@ class CameraService {
       settingsChanged = true;
     }
 
-    // Note: Always using PNG format as requested
+    // Note: Always using JPEG format for optimal performance
 
     if (settingsChanged) {
       // developer.log('Increased quality for good connection');
@@ -1527,113 +1480,6 @@ class CameraService {
     _startDetectionLoop();
   }
 
-  void _handleFeedback(Rect? bbox, DetectionChecks checks) {
-    if (_disposed) return;
-
-    // Always update _lastChecks
-    _lastChecks = checks;
-
-    if (bbox == null) {
-      _lastBbox = null;
-      _resetSteadyState();
-      _emitFeedback(
-        DetectionFeedback(
-          message: FeedbackMessage.default_.text,
-          checks: const DetectionChecks(),
-          connecting: false,
-          connected: true,
-          analyzing: false,
-          bbox: null,
-          feedbackState: FeedbackState.info,
-        ),
-      );
-      return;
-    }
-
-    _lastBbox = bbox;
-
-    // The bbox from _transformBboxFromCroppedToScreen is in screen coordinates
-    final screenBbox = bbox;
-
-    final feedback = _bboxFeedback(screenBbox);
-    final isInside = feedback == FeedbackMessage.good.text;
-    final passAllChecks = _areAllDetectionChecksPassed();
-
-    if (isInside && passAllChecks) {
-      // Start steady period
-      _steadyStartTime ??= DateTime.now();
-    } else {
-      _resetSteadyState();
-    }
-
-    _emitFeedback(
-      DetectionFeedback(
-        message: feedback,
-        checks: checks,
-        connecting: _wsService.isConnecting,
-        connected: _wsService.isConnected,
-        analyzing: false,
-        bbox: bbox,
-        feedbackState: _getFeedbackStateFromMessage(feedback),
-      ),
-    );
-  }
-
-  void _startPeriodicCaptureCheck() {
-    // Cancel any existing timer
-    _periodicCaptureTimer?.cancel();
-
-    _periodicCaptureTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_disposed) {
-        timer.cancel();
-        return;
-      }
-
-      // Independent capture check based on current state
-      if (_steadyStartTime != null && !_captureTriggered) {
-        final steadyDuration = DateTime.now().difference(_steadyStartTime!);
-
-        if (steadyDuration >= _kSteadyDelay) {
-          // Check current state without waiting for server
-          if (_lastBbox != null) {
-            final currentFeedback = _bboxFeedback(_lastBbox!);
-            final isCurrentStateGood =
-                currentFeedback == FeedbackMessage.good.text;
-            final currentChecksGood = _areAllDetectionChecksPassed();
-
-            if (isCurrentStateGood && currentChecksGood) {
-              _captureTriggered = true;
-              capture();
-            }
-          }
-        }
-      }
-    });
-  }
-
-  void _resetSteadyState() {
-    _steadyStartTime = null;
-    _captureTriggered = false;
-    // developer.log('Steady state reset');
-  }
-
-  /// Determine feedback state based on message content
-  FeedbackState _getFeedbackStateFromMessage(String message) {
-    if (message == FeedbackMessage.good.text) {
-      return FeedbackState.success;
-    } else if (message == FeedbackMessage.default_.text) {
-      return FeedbackState.info;
-    } else if (message == FeedbackMessage.goodPositionBadQuality.text) {
-      return FeedbackState.error; // Orange/red to indicate quality issue
-    } else if (message == FeedbackMessage.processingError.text ||
-        message == FeedbackMessage.connectionError.text) {
-      return FeedbackState.error;
-    } else {
-      // Directional feedback (move left, right, up, down)
-      return FeedbackState.error;
-    }
-  }
-
   void _emitFeedback(DetectionFeedback feedback) {
     if (_disposed) return;
 
@@ -1644,135 +1490,6 @@ class CameraService {
         _feedbackController.add(feedback);
       }
     });
-  }
-
-  /// Generates intelligent positioning feedback based on document bounding box analysis
-  ///
-  /// Analyzes the detected document's position relative to the target area and
-  /// provides specific, actionable guidance to help users achieve optimal positioning.
-  ///
-  /// ## Analysis Components
-  /// - **Quality Assessment**: Evaluates brightness, blur, glare, and other factors
-  /// - **Position Analysis**: Compares document center with target center
-  /// - **Overlap Calculation**: Determines coverage between document and target areas
-  /// - **Size Validation**: Ensures document is appropriately scaled
-  ///
-  /// ## Feedback Priority
-  /// 1. **Perfect Position + Quality**: Returns success message for capture readiness
-  /// 2. **Good Position + Poor Quality**: Guides quality improvement
-  /// 3. **Poor Position**: Provides directional guidance (up/down/left/right)
-  ///
-  /// ## Positioning Logic
-  /// Uses lenient overlap requirements (50% minimum) for better user experience
-  /// while maintaining reasonable size constraints (40%-200% of target size).
-  /// Prioritizes vertical movement guidance over horizontal when both are needed.
-  ///
-  /// [bbox] - Document bounding box in screen coordinates from ML detection
-  /// Returns human-readable feedback message for UI display
-  String _bboxFeedback(Rect bbox) {
-    // Check if detection quality is good
-    final qualityGood = _areAllDetectionChecksPassed();
-
-    // Calculate bbox center
-    final bboxCenter = bbox.center;
-    final targetCenter = targetRect.center;
-
-    // Calculate offsets
-    final centerOffsetX = bboxCenter.dx - targetCenter.dx;
-    final centerOffsetY = bboxCenter.dy - targetCenter.dy;
-
-    // Calculate how much we need to move horizontally and vertically
-    final horizontalMove = centerOffsetX.abs();
-    final verticalMove = centerOffsetY.abs();
-
-    // 2. Overlap check - more practical thresholds
-    final overlapRect = bbox.intersect(targetRect);
-    final overlapArea = overlapRect.width * overlapRect.height;
-    final bboxArea = bbox.width * bbox.height;
-    final targetArea = targetRect.width * targetRect.height;
-
-    // More lenient overlap requirements
-    final overlapRatio = overlapArea / bboxArea;
-    final coverageRatio = overlapArea / targetArea;
-    final goodOverlap = overlapRatio >= 0.5 || coverageRatio >= 0.5;
-
-    // 3. Size check - very lenient
-    final sizeRatio = bbox.width / targetRect.width;
-    final reasonableSize = sizeRatio >= 0.4 && sizeRatio <= 2.0;
-
-    // Position is good if we have reasonable overlap AND reasonable size
-    // Don't require perfect centering - overlap is more important
-    final positionGood = goodOverlap && reasonableSize;
-
-    if (positionGood && qualityGood) {
-      return FeedbackMessage.good.text;
-    }
-
-    if (positionGood && !qualityGood) {
-      return FeedbackMessage.goodPositionBadQuality.text;
-    }
-
-    // Directional feedback - only suggest one direction at a time
-    if (verticalMove > horizontalMove) {
-      // Vertical movement needed
-      if (centerOffsetY > _kPositionTolerance) {
-        return FeedbackMessage.tooHigh.text; // bbox is below target, move up
-      } else if (centerOffsetY < -_kPositionTolerance) {
-        return FeedbackMessage.tooLow.text; // bbox is above target, move down
-      }
-    }
-
-    if (horizontalMove > verticalMove) {
-      // Horizontal movement needed
-      if (centerOffsetX > _kPositionTolerance) {
-        return FeedbackMessage
-            .moveRight
-            .text; // bbox is right of target, move right
-      } else if (centerOffsetX < -_kPositionTolerance) {
-        return FeedbackMessage
-            .moveLeft
-            .text; // bbox is left of target, move left
-      }
-    }
-
-    // If we get here, the position is close but not perfect
-    // Check the most significant deviation
-    if (verticalMove >= horizontalMove) {
-      if (centerOffsetY > 0) {
-        return FeedbackMessage.tooHigh.text; // bbox is below target, move up
-      } else {
-        return FeedbackMessage.tooLow.text; // bbox is above target, move down
-      }
-    } else {
-      if (centerOffsetX > 0) {
-        return FeedbackMessage
-            .moveRight
-            .text; // bbox is right of target, move right
-      } else {
-        return FeedbackMessage
-            .moveLeft
-            .text; // bbox is left of target, move left
-      }
-    }
-  }
-
-  /// Check if all detection checks have passed
-  bool _areAllDetectionChecksPassed() {
-    // Check the most important quality indicators
-    bool darknessOk =
-        _lastChecks.darkness == DetectionCheckResult.pass ||
-        _lastChecks.darkness == DetectionCheckResult.none;
-    bool brightnessOk =
-        _lastChecks.brightness == DetectionCheckResult.pass ||
-        _lastChecks.brightness == DetectionCheckResult.none;
-    bool blurOk =
-        _lastChecks.blur == DetectionCheckResult.pass ||
-        _lastChecks.blur == DetectionCheckResult.none;
-    bool glareOk =
-        _lastChecks.glare == DetectionCheckResult.pass ||
-        _lastChecks.glare == DetectionCheckResult.none;
-
-    return darknessOk && brightnessOk && blurOk && glareOk;
   }
 
   /// Performs manual document capture with precise cropping and coordinate transformation
@@ -1799,7 +1516,7 @@ class CameraService {
   /// ## Quality Optimization
   /// - Uses high resolution capture (distinct from detection frames)
   /// - Applies minimal padding for edge preservation
-  /// - Maintains PNG format for lossless quality
+  /// - Maintains PNG format for lossless quality (final capture only, detection uses JPEG)
   /// - Handles coordinate clamping to prevent out-of-bounds cropping
   ///
   /// The captured image is emitted through the capture stream for consumption
@@ -1816,7 +1533,7 @@ class CameraService {
       final XFile file = await cameraController.takePicture();
       final originalBytes = await file.readAsBytes();
 
-      // Convert to PNG format
+      // Convert to PNG format for final high-quality capture
       final pngBytes = await ImageCropper.convertToPng(originalBytes);
 
       // Get actual image dimensions
@@ -1967,7 +1684,6 @@ class CameraService {
     _wsMessageSub?.cancel();
     _wsErrorSub?.cancel();
     _periodicCaptureTimer?.cancel();
-    _responseTimeoutTimer?.cancel();
     _stopImageStream(); // Ensure stream is stopped
     disconnect();
 

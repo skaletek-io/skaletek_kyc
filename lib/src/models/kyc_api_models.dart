@@ -162,26 +162,24 @@ class DetectionChecks {
   final DetectionCheckResult glare;
   final DetectionCheckResult blur;
   final DetectionCheckResult contrast;
-  final DetectionCheckResult darkness;
   final DetectionCheckResult brightness;
 
   const DetectionChecks({
     this.glare = DetectionCheckResult.none,
     this.blur = DetectionCheckResult.none,
     this.contrast = DetectionCheckResult.none,
-    this.darkness = DetectionCheckResult.none,
     this.brightness = DetectionCheckResult.none,
   });
 
   static const Map<String, String> labels = {
-    'darkness': 'Document is fully visible',
+    'contrast': 'Document is fully visible',
     'brightness': 'Good lighting detected',
     'blur': 'No blur detected',
     'glare': 'No glare or reflections',
   };
 
   static const Map<String, String> failLabels = {
-    'darkness': 'Document is not visible',
+    'contrast': 'Document is not visible',
     'brightness': 'Poor lighting',
     'blur': 'Blur detected',
     'glare': 'Glare/reflections detected',
@@ -199,7 +197,6 @@ class DetectionChecks {
       glare: parse(map['glare_quality']),
       blur: parse(map['blur_quality']),
       contrast: parse(map['contrast_quality']),
-      darkness: parse(map['darkness']), // Optional - for backward compatibility
       brightness: parse(map['brightness_quality']),
     );
   }
@@ -208,7 +205,6 @@ class DetectionChecks {
     'glare': _toString(glare),
     'blur': _toString(blur),
     'contrast': _toString(contrast),
-    'darkness': _toString(darkness),
     'brightness': _toString(brightness),
   };
 
