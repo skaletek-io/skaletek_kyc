@@ -1014,7 +1014,7 @@ class CameraService {
     _startImageStream(); // Start image stream for silent capture
 
     _detectionTimer = Timer.periodic(_currentDetectionInterval, (_) async {
-      if (_disposed || !_wsService.isConnected || _waitingForResponse) return;
+      if (_disposed || !_wsService.isConnected || _pendingRequest) return;
 
       // Frame rate limiting
       final now = DateTime.now();
