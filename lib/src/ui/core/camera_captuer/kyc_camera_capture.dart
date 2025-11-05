@@ -155,10 +155,10 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
 
   // Snackbar spam prevention
   /// Timestamp of last snackbar shown to prevent spam
-  DateTime? _lastSnackbarTime;
+  // DateTime? _lastSnackbarTime;
 
   /// Minimum interval between snackbars to prevent UI spam
-  static const _minSnackbarInterval = Duration(milliseconds: 500);
+  // static const _minSnackbarInterval = Duration(milliseconds: 500);
 
   @override
   void initState() {

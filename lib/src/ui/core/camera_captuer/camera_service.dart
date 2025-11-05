@@ -3,63 +3,61 @@
 /// A comprehensive service that handles real-time document detection and capture
 /// for KYC (Know Your Customer) verification processes. Integrates with WebSocket-based
 /// machine learning backends to provide live feedback on document positioning,
-/// quality, and automatic capture capabilities.
+/// quality, and spoof detection capabilities.
 ///
-/// ## 🐛 DEBUG FEATURE ACTIVE
-/// **WARNING**: This file contains a debugging feature that saves the 5th image to device storage.
-/// To remove before production:
-/// 1. Delete _debugSaveImageToDevice() function (line ~1187-1223)
-/// 2. Delete _debugImageCounter field (line ~539)
-/// 3. Remove debug call in _startDetectionLoop (lines ~1119-1122)
+/// ## 🐛 DEBUG FEATURE
+/// **NOTE**: Debug features are currently commented out.
+/// The _debugSaveImageToDevice() function can be used for debugging image quality.
+/// See lines ~1115-1120 for how to enable image preview functionality.
 ///
 /// ## Core Features
 /// - **Real-time Detection**: Continuous analysis of camera frames for document presence
 /// - **WebSocket Integration**: Seamless communication with ML backend services
-/// - **Adaptive Performance**: Dynamic quality and interval adjustments based on network conditions
-/// - **Automatic Capture**: Intelligent triggering when document meets quality criteria
-/// - **Image Processing**: Efficient conversion, cropping, and optimization of camera images
-/// - **Coordinate Transformation**: Accurate mapping between camera, screen, and image coordinates
+/// - **Adaptive Performance**: Dynamic quality and interval adjustments based on network performance
+/// - **Spoof Detection**: Identifies screen reflections and printouts
+/// - **Image Processing**: Efficient YUV to RGB conversion with proper color handling
+/// - **Auto-Rotation**: Automatic portrait orientation correction for Android cameras
 /// - **Memory Management**: Optimized image processing with minimal memory footprint
 ///
 /// ## Architecture Overview
 /// ```
 /// CameraController -> CameraService -> WebSocket Backend
 ///       |                 |                    |
-///   Image Stream    Image Processing    ML Detection
+///   Image Stream    Image Processing      ML Detection
 ///       |                 |                    |
-///   Live Frames      PNG Conversion      Quality Analysis
+///   YUV420 Frames   RGB + Rotation      Quality Analysis
 ///       |                 |                    |
-///   Performance      Coordinate Transform   Feedback
+///   Live Preview    JPEG Compression    Spoof Detection
 /// ```
 ///
 /// ## Performance Optimizations
 /// - **Frame Rate Limiting**: Adaptive detection intervals (50ms-200ms)
-/// - **Image Quality Scaling**: Dynamic compression based on network performance
-/// - **Memory Pooling**: Efficient image processing with reusable buffers
-/// - **Connection Management**: Automatic reconnection and error handling
+/// - **JPEG Compression**: Dynamic quality scaling (30%-95%) based on network
+/// - **Image Downsampling**: Adaptive scaling (40%-100%) for slower networks
+/// - **Batch Processing**: Multiple frames sent before waiting for response
+/// - **Connection Management**: Automatic reconnection with error handling
 /// - **Debounced Updates**: Throttled UI feedback to prevent excessive rebuilds
 ///
 /// ## Image Processing Pipeline
-/// 1. **Camera Capture**: Raw camera frames in YUV420/BGRA8888 format
-/// 2. **Format Conversion**: Convert to PNG for consistent processing
-/// 3. **Intelligent Cropping**: Extract document area with 25% vertical padding
-/// 4. **Quality Optimization**: Adaptive compression based on network conditions
-/// 5. **Coordinate Mapping**: Transform detection results back to screen coordinates
-/// 6. **Feedback Generation**: Real-time positioning and quality guidance
+/// 1. **Camera Capture**: Raw camera frames in YUV420 (Android) or BGRA8888 (iOS) format
+/// 2. **Color Conversion**: YUV to RGB with proper color space coefficients
+/// 3. **Orientation Fix**: Automatic 90° rotation for Android portrait mode
+/// 4. **Downsampling**: Optional scaling based on network conditions
+/// 5. **JPEG Encoding**: Adaptive quality compression (default 50%)
+/// 6. **WebSocket Send**: Binary image data sent to ML backend
 ///
 /// ## Detection Quality Checks
-/// - **Brightness**: Optimal lighting conditions
+/// - **Brightness**: Optimal lighting conditions validation
 /// - **Contrast**: Prevents underexposed images
 /// - **Blur**: Ensures sharp, readable documents
 /// - **Glare**: Detects and prevents reflective surfaces
-/// - **Position**: Validates document placement within target area
-/// - **Size**: Confirms appropriate document scale
+/// - **Spoof Detection**: Identifies screen and print attacks
 ///
 /// ## WebSocket Communication Protocol
-/// - **Outbound**: Optimized PNG image data with adaptive quality
-/// - **Inbound**: Detection results with bounding boxes and quality metrics
+/// - **Outbound**: JPEG image data with adaptive quality (binary format)
+/// - **Inbound**: Metadata with quality checks, spoof labels, and capture status
 /// - **Error Handling**: Automatic reconnection with exponential backoff
-/// - **Performance Tracking**: Network latency monitoring for optimization
+/// - **Performance Tracking**: Network latency monitoring for adaptive optimization
 ///
 /// ## Usage Example
 /// ```dart
@@ -115,9 +113,6 @@ const Duration _kMinDetectionInterval = Duration(milliseconds: 50);
 /// Maximum detection interval for low-performance scenarios (slow network)
 const Duration _kMaxDetectionInterval = Duration(milliseconds: 200);
 
-/// Required steady positioning duration before automatic capture
-const Duration _kSteadyDelay = Duration(milliseconds: 3000);
-
 // =============================================================================
 // IMAGE QUALITY CONSTANTS
 // =============================================================================
@@ -160,14 +155,8 @@ const double _kFastNetworkThreshold = 300.0;
 // DETECTION AND CROPPING CONSTANTS
 // =============================================================================
 
-/// Position tolerance (pixels) for center alignment validation
-const double _kPositionTolerance = 40.0;
-
 /// Padding (pixels) added around target area for manual capture cropping
 const double _kCropPadding = 10.0;
-
-/// Vertical padding ratio (25%) for detection area cropping
-const double _kDetectionCropPadding = 0.25;
 
 /// Visual feedback states for UI overlay styling and user guidance
 enum FeedbackState {
@@ -360,23 +349,33 @@ class DetectionFeedback {
 
 /// Performance monitoring and adaptive optimization system
 ///
-/// Tracks processing and network performance metrics to enable dynamic
-/// quality adjustments for optimal user experience across varying device
-/// capabilities and network conditions.
+/// Tracks both local processing and network performance to dynamically adjust
+/// quality settings for optimal user experience across varying device capabilities
+/// and network conditions.
 ///
-/// ## Metrics Tracked
-/// - **Processing Time**: Local image processing and conversion duration
-/// - **Network Response Time**: Round-trip time for WebSocket communication
-/// - **Performance Trends**: Rolling averages for trend analysis
+/// ## Metrics Tracked (Every 2 Seconds)
+/// - **Processing Time**: YUV→RGB conversion + rotation + JPEG encoding duration
+/// - **Network Response Time**: Round-trip time for WebSocket request/response
+/// - **Rolling Averages**: Last 10 samples for trend analysis
+///
+/// ## How It Works
+/// 1. Tracks timing for every image processed and sent
+/// 2. Every 2 seconds, checks averages against thresholds
+/// 3. Adjusts quality/scale/interval based on performance
 ///
 /// ## Adaptive Behaviors
-/// - **Poor Performance**: Reduces image quality and increases detection intervals
-/// - **Good Performance**: Increases quality and decreases intervals for faster response
-/// - **Network Optimization**: Adjusts image compression based on response times
+/// - **Poor Performance** (>200ms processing OR >1000ms network):
+///   - Reduces JPEG quality (down to 30%)
+///   - Reduces image scale (down to 40%)
+///   - Increases detection interval (up to 200ms)
+/// - **Good Performance** (<100ms processing AND <500ms network):
+///   - Increases JPEG quality (up to 95%)
+///   - Increases image scale (up to 100%)
+///   - Decreases detection interval (down to 50ms)
 ///
 /// ## Sample Management
-/// Maintains a rolling window of the most recent performance samples to ensure
-/// adaptive behavior responds to current conditions rather than historical averages.
+/// Maintains a rolling window of 10 most recent samples to ensure
+/// adaptive behavior responds to current conditions, not historical averages.
 class _PerformanceMetrics {
   /// Rolling buffer of processing times (milliseconds) for local operations
   final List<int> _processingTimes = [];
@@ -543,9 +542,6 @@ class CameraService {
 
   final int _totalImageToSend = 3;
 
-  // DEBUG: Counter for debugging image download
-  int _debugImageCounter = 0;
-
   /// Flag indicating if the service has been disposed
   bool _disposed = false;
 
@@ -582,12 +578,6 @@ class CameraService {
   /// Flag indicating if camera image stream is active
   bool _isStreaming = false;
 
-  /// Timestamp when steady positioning began
-  DateTime? _steadyStartTime;
-
-  /// Flag preventing multiple capture triggers
-  bool _captureTriggered = false;
-
   /// Creates a new camera service instance with the specified configuration
   ///
   /// ## Parameters
@@ -610,10 +600,13 @@ class CameraService {
            WebSocketService(
              environment: environment ?? SkaletekEnvironment.dev.value,
            ) {
-    // Apply optimized settings by default for better real-device performance
-    _currentImageQuality = 0.5; // 50% quality
-    _currentImageScale = 0.6; // 60% scale
-    _currentDetectionInterval = Duration(milliseconds: 150); // 150ms interval
+    // Initialize with optimized settings for real-device performance
+    // These values will adapt automatically based on network conditions
+    _currentImageQuality = 0.5; // 50% JPEG quality (can go 30%-95%)
+    _currentImageScale = 0.6; // 60% resolution (can go 40%-100%)
+    _currentDetectionInterval = Duration(
+      milliseconds: 150,
+    ); // 150ms interval (can go 50ms-200ms)
 
     _initWebSocketListeners();
     _startPerformanceMonitoring();
@@ -986,25 +979,18 @@ class CameraService {
         try {
           // Ensure image has proper data URL format (same as React pattern)
           String base64String;
-          String mimeType = 'image/jpeg'; // Default to JPEG like React
 
           if (bestImage.startsWith('data:')) {
-            // Has header - extract base64 and mime type
+            // Has header - extract base64 part
             final parts = bestImage.split(',');
             if (parts.length > 1) {
               base64String = parts[1];
-              // Extract mime type from header (e.g., "data:image/png;base64,")
-              final headerMatch = RegExp(r'data:([^;]+)').firstMatch(parts[0]);
-              if (headerMatch != null) {
-                mimeType = headerMatch.group(1) ?? 'image/jpeg';
-              }
             } else {
               base64String = bestImage;
             }
           } else {
-            // No header - raw base64 (same as React: add data:image/jpeg;base64, prefix)
+            // No header - raw base64
             base64String = bestImage;
-            // developer.log('Best image: raw base64 (no data URL header)');
           }
 
           // Decode base64 to bytes
@@ -1182,26 +1168,29 @@ class CameraService {
   // DEBUG FUNCTIONS - FOR DEVELOPMENT ONLY
   // =============================================================================
 
-  /// DEBUG ONLY: Saves the EXACT image bytes being sent to the endpoint
+  /// DEBUG: Saves and opens the exact image being sent to the endpoint
   ///
-  /// This saves the IDENTICAL data that gets transmitted over the WebSocket.
-  /// No conversion, no modification - byte-for-byte what the endpoint receives.
+  /// **Purpose**: Verify that images have correct colors and orientation
   ///
-  /// Current settings (as of line ~613):
-  /// - Scale: 60% of camera resolution
-  /// - Quality: 50% JPEG compression
+  /// **What it saves**: The EXACT binary data sent over WebSocket (byte-for-byte)
   /// - Format: JPEG
+  /// - Quality: Current adaptive quality (default 50%)
+  /// - Scale: Current adaptive scale (default 60%)
+  /// - Colors: Full RGB (not grayscale)
+  /// - Orientation: Portrait (rotated 90°)
   ///
-  /// The image is saved to:
-  /// - Android: /storage/emulated/0/Pictures/SkaletekKYC/
-  /// - iOS: App's documents directory (accessible via Files app)
+  /// **What it does**:
+  /// 1. Saves image to temporary directory
+  /// 2. Stops detection loop
+  /// 3. Opens image in system photo viewer/gallery
+  /// 4. Falls back to capture stream if viewer fails
   ///
-  /// The image will appear in your Photos/Gallery app on Android.
+  /// **To enable**:
+  /// 1. Uncomment lines ~1115-1120 in _startDetectionLoop
+  /// 2. Optionally add `int _debugImageCounter = 0;` field to track count
   ///
-  /// To remove this debug feature, simply delete:
-  /// 1. This function
-  /// 2. The _debugImageCounter field (line ~546)
-  /// 3. The debug call in _startDetectionLoop (lines ~1125-1130)
+  /// **Use case**: Debugging color/rotation issues by viewing actual sent images
+  // ignore: unused_element
   Future<void> _debugSaveImageToDevice(Uint8List imageBytes) async {
     try {
       // Save to temporary directory
@@ -1249,33 +1238,47 @@ class CameraService {
     }
   }
 
-  /// Processes camera images for ML backend analysis with adaptive optimization
+  /// Processes camera images for ML backend analysis
   ///
-  /// Executes the complete image processing pipeline to prepare camera frames
-  /// for document detection analysis. The pipeline includes:
+  /// Converts raw camera frames to properly formatted JPEG images with correct
+  /// color space and orientation. This is the main entry point for image processing
+  /// in the detection loop.
   ///
-  /// ## Processing Steps
-  /// 1. **Format Conversion**: Convert from camera native format to PNG
-  /// 2. **Intelligent Cropping**: Extract document area with contextual padding
-  /// 3. **Quality Optimization**: Apply adaptive compression based on network performance
-  /// 4. **Size Optimization**: Scale images for optimal performance/quality balance
+  /// ## What It Does
+  /// - Converts camera native format (YUV420/BGRA8888) to RGB
+  /// - Fixes color issues (grayscale → full color)
+  /// - Corrects orientation (sideways → portrait)
+  /// - Applies adaptive quality and scaling
+  /// - Encodes to JPEG format
   ///
-  /// ## Adaptive Features
-  /// - **Quality Scaling**: 30%-95% compression based on network conditions
-  /// - **Resolution Scaling**: Up to 60% reduction for poor connections
-  /// - **Format Consistency**: Always outputs PNG for reliable ML processing
+  /// ## Default Settings (Optimized for Performance)
+  /// - **Quality**: 50% JPEG compression
+  /// - **Scale**: 60% of original resolution
+  /// - **Format**: JPEG (smaller than PNG)
+  ///
+  /// ## Adaptive Behavior
+  /// Quality and scale adjust automatically based on network performance:
+  /// - **Good network**: Higher quality (up to 95%), full resolution
+  /// - **Poor network**: Lower quality (down to 30%), reduced resolution (40%)
   ///
   /// ## Error Handling
   /// Returns null if processing fails, allowing the detection loop to continue
   /// with the next frame rather than breaking the entire pipeline.
   ///
-  /// [image] - Raw camera image in YUV420 or BGRA8888 format
-  /// Returns optimized JPEG bytes ready for ML backend, or null on error
+  /// [image] - Raw camera image in YUV420 (Android) or BGRA8888 (iOS) format
+  /// Returns JPEG bytes ready for ML backend, or null on error
   Future<Uint8List?> _processCameraImage(CameraImage image) async {
+    final processingStart = DateTime.now();
+
     try {
-      // Convert CameraImage to JPEG bytes (faster and smaller than PNG)
       final jpegBytes = await _convertCameraImageToJpeg(image);
-      // JPEG already handles quality compression, no need for additional optimization
+
+      // Track processing time for adaptive optimization
+      final processingDuration = DateTime.now()
+          .difference(processingStart)
+          .inMilliseconds;
+      _performanceMetrics.addProcessingTime(processingDuration);
+
       return jpegBytes;
     } catch (e) {
       developer.log('Error processing camera image: $e');
@@ -1283,7 +1286,27 @@ class CameraService {
     }
   }
 
-  /// Convert CameraImage to JPEG format with proper color and orientation
+  /// Converts CameraImage to JPEG with proper color space and orientation
+  ///
+  /// This is the core image processing function that fixes the two critical issues:
+  /// 1. **Grayscale Problem**: Uses correct YUV to RGB conversion coefficients
+  /// 2. **Rotation Problem**: Applies 90° clockwise rotation for Android portrait mode
+  ///
+  /// ## YUV to RGB Conversion
+  /// Uses proper ITU-R BT.601 color space coefficients:
+  /// - R = Y + 1.370705 * (V - 128)
+  /// - G = Y - 0.337633 * (U - 128) - 0.698001 * (V - 128)
+  /// - B = Y + 1.732446 * (U - 128)
+  ///
+  /// ## Processing Steps
+  /// 1. Parse YUV420 or BGRA8888 planes from camera
+  /// 2. Convert to RGB pixel-by-pixel with proper coefficients
+  /// 3. Apply downsampling if scale < 1.0 (for slower networks)
+  /// 4. Rotate 90° clockwise (Android cameras need this for portrait)
+  /// 5. Encode as JPEG with current quality setting
+  ///
+  /// [image] - Raw camera image
+  /// Returns JPEG bytes with correct colors and orientation
   Future<Uint8List> _convertCameraImageToJpeg(CameraImage image) async {
     try {
       // Use image package directly for better YUV handling
