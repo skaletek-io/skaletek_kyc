@@ -1,3 +1,12 @@
+## 0.0.9
+
+**Image Processing & Quality Improvements** - Major fixes for camera image handling and optimization.
+
+## 0.0.8
+
+**Spoof Detection Enhancement** - Documentation and stability improvements.
+
+
 ## 0.0.7
 
 **Spoof Detection Feature** - Enhanced security with advanced anti-spoofing capabilities.
