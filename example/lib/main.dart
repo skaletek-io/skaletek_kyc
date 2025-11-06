@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     SkaletekKYC.instance.startVerification(
       context: context,
-      token: "3c517de16ce648868bded2c1e649c7ea",
+      token: "0c69b2c1a79a422287346d76351cde93",
       // token: "your-token-here",
       userInfo: userInfo,
       customization: customization,
@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const Icon(Icons.verified_user, size: 80, color: Color(0xFF1261C1)),
             const SizedBox(height: 24),
             const Text(
-              'Skaletek KYC SDK Demo',
+              'Skaletek KYC SDK Demo 2',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),

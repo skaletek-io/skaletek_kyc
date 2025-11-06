@@ -281,6 +281,8 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
     // Listen to capture stream
     _cameraService!.captureStream.listen((file) {
       if (mounted && _isActive) {
+        // Stop processing any further updates after capture
+        _isActive = false;
         widget.onCapture?.call(file);
       }
     });

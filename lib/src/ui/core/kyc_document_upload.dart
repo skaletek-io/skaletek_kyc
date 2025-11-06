@@ -420,6 +420,12 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
         child: KYCCameraCapture(
           wsService: _wsService, // Pass WebSocket service to camera
           onCapture: (file) async {
+            // Close camera immediately to prevent blank screen
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
+
+            // Process captured file after navigation
             final bytes = await file.readAsBytes();
             final imageFile = ImageFile(
               name: file.name,
@@ -428,14 +434,6 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
               path: file.path,
               extension: file.name.split('.').last,
             );
-
-            // Small delay to ensure camera stream has stopped cleanly
-            // This prevents blank screen issues during navigation
-            await Future.delayed(const Duration(milliseconds: 100));
-
-            if (context.mounted) {
-              Navigator.of(context).pop();
-            }
 
             if (isFront) {
               _frontFileInputKey.currentState?.setFileAndScan(
