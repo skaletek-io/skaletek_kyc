@@ -53,8 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     SkaletekKYC.instance.startVerification(
       context: context,
-      token: "0c69b2c1a79a422287346d76351cde93",
-      // token: "your-token-here",
+      token: "your-token-here",
       userInfo: userInfo,
       customization: customization,
       environment: SkaletekEnvironment.dev,
