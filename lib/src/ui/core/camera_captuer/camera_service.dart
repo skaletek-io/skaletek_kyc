@@ -1096,12 +1096,23 @@ class CameraService {
       }
       _lastFrameTime = now;
 
-      _requestStartTime = DateTime.now(); // Track request start time
+      _requestStartTime =
+          DateTime.now(); // Track request start time for network
 
       try {
         if (_latestCameraImage != null) {
+          // Track processing time
+          final processingStart = DateTime.now();
           final arrayBuffer = await _processCameraImage(_latestCameraImage!);
+          final processingEnd = DateTime.now();
+
           if (arrayBuffer != null && !_disposed) {
+            // Record processing time for adaptive optimization
+            final processingTime = processingEnd
+                .difference(processingStart)
+                .inMilliseconds;
+            _performanceMetrics.addProcessingTime(processingTime);
+
             // developer.log(
             //   'Sending optimized image data: ${arrayBuffer.length} bytes',
             // );
@@ -1386,6 +1397,20 @@ class CameraService {
     }
   }
 
+  /// Starts adaptive performance monitoring
+  ///
+  /// Monitors two key metrics every 2 seconds:
+  /// 1. **Processing Time**: How long it takes to convert camera frames to JPEG
+  /// 2. **Network Time**: Round-trip time for WebSocket communication
+  ///
+  /// Based on these metrics, automatically adjusts:
+  /// - JPEG quality (30%-95%)
+  /// - Image scale (40%-100%)
+  /// - Detection interval (50ms-200ms)
+  ///
+  /// **Thresholds**:
+  /// - Poor: Processing > 200ms OR Network > 1000ms
+  /// - Good: Processing < 100ms AND Network < 500ms
   void _startPerformanceMonitoring() {
     _performanceTimer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (_disposed) return;
@@ -1394,6 +1419,11 @@ class CameraService {
     });
   }
 
+  /// Adjusts quality settings based on performance metrics
+  ///
+  /// Uses rolling averages (last 10 samples) to determine:
+  /// - Is performance poor? → Reduce quality/scale
+  /// - Is performance good? → Increase quality/scale
   void _adjustPerformanceSettings() {
     final metrics = _performanceMetrics;
 
