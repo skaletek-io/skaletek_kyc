@@ -114,7 +114,7 @@ class _DetectionCheckItem extends StatelessWidget {
         break;
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 32),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
@@ -132,8 +132,8 @@ class _DetectionCheckItem extends StatelessWidget {
                 label,
                 style: TextStyle(
                   color: textColor,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 14,
                 ),
               ),
             ),

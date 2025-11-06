@@ -49,7 +49,7 @@ class FeedbackBox extends StatelessWidget {
           style: TextStyle(
             color: textColor,
             fontWeight: FontWeight.w600,
-            fontSize: 15,
+            fontSize: 14,
           ),
         ),
       ),

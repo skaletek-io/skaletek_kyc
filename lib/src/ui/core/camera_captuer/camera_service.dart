@@ -1024,6 +1024,12 @@ class CameraService {
 
           // Create XFile and emit through capture stream (same as React: setCroppedFile)
           final xFile = XFile(filePath);
+
+          // Stop detection loop and camera stream before emitting capture
+          // This prevents blank screen issues during navigation
+          _detectionTimer?.cancel();
+          _stopImageStream();
+
           _captureController.add(xFile);
 
           // developer.log(

@@ -429,6 +429,10 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
               extension: file.name.split('.').last,
             );
 
+            // Small delay to ensure camera stream has stopped cleanly
+            // This prevents blank screen issues during navigation
+            await Future.delayed(const Duration(milliseconds: 100));
+
             if (context.mounted) {
               Navigator.of(context).pop();
             }
