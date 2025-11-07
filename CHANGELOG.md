@@ -1,3 +1,7 @@
+## 0.0.10
+
+**Bug Fix Release** - Critical fixes for camera blank screen, image quality (grayscale/rotation), and performance monitoring.
+
 ## 0.0.9
 
 **Image Processing & Quality Improvements** - Major fixes for camera image handling and optimization.

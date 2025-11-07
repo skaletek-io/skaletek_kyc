@@ -419,13 +419,14 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
         height: MediaQuery.of(context).size.height,
         child: KYCCameraCapture(
           wsService: _wsService, // Pass WebSocket service to camera
-          onCapture: (file) async {
+          onCapture: (capturedImage) async {
             // Close camera immediately to prevent blank screen
             if (context.mounted) {
               Navigator.of(context).pop();
             }
 
             // Process captured file after navigation
+            final file = capturedImage.file;
             final bytes = await file.readAsBytes();
             final imageFile = ImageFile(
               name: file.name,
@@ -435,18 +436,30 @@ class _KYCDocumentUploadState extends State<KYCDocumentUpload> {
               extension: file.name.split('.').last,
             );
 
-            if (isFront) {
-              _frontFileInputKey.currentState?.setFileAndScan(
-                imageFile,
-                widget.userInfo?.documentType,
-                widget.kycService,
-              );
+            // If automatic capture (from ML backend best_image), just set the file
+            // If manual capture, scan it for passport detection
+            if (capturedImage.isAutomatic) {
+              // Automatic capture - already processed by ML backend, no scanning needed
+              if (isFront) {
+                _frontFileInputKey.currentState?.setFile(imageFile);
+              } else {
+                _backFileInputKey.currentState?.setFile(imageFile);
+              }
             } else {
-              _backFileInputKey.currentState?.setFileAndScan(
-                imageFile,
-                widget.userInfo?.documentType,
-                widget.kycService,
-              );
+              // Manual capture - needs scan/crop for passport documents
+              if (isFront) {
+                _frontFileInputKey.currentState?.setFileAndScan(
+                  imageFile,
+                  widget.userInfo?.documentType,
+                  widget.kycService,
+                );
+              } else {
+                _backFileInputKey.currentState?.setFileAndScan(
+                  imageFile,
+                  widget.userInfo?.documentType,
+                  widget.kycService,
+                );
+              }
             }
           },
         ),

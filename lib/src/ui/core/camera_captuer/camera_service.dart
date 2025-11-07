@@ -240,6 +240,21 @@ enum FeedbackMessage {
   final String text;
 }
 
+/// Wrapper for captured images with metadata about capture source
+///
+/// Distinguishes between manual captures (user-initiated) and automatic captures
+/// (ML backend best_image). This allows downstream processing to skip redundant
+/// detection/cropping for already-processed images.
+class CapturedImage {
+  /// The captured image file
+  final XFile file;
+
+  /// Whether this was automatically captured by ML backend (true) or manually by user (false)
+  final bool isAutomatic;
+
+  CapturedImage({required this.file, required this.isAutomatic});
+}
+
 /// Comprehensive feedback data structure for real-time detection updates
 ///
 /// Encapsulates all information needed to provide user feedback during document
@@ -566,7 +581,7 @@ class CameraService {
   final _feedbackController = StreamController<DetectionFeedback>.broadcast();
 
   /// Stream controller for captured document images
-  final _captureController = StreamController<XFile>.broadcast();
+  final _captureController = StreamController<CapturedImage>.broadcast();
 
   // =============================================================================
   // IMAGE PROCESSING STATE
@@ -616,7 +631,7 @@ class CameraService {
   Stream<DetectionFeedback> get feedbackStream => _feedbackController.stream;
 
   /// Stream of successfully captured and processed document images
-  Stream<XFile> get captureStream => _captureController.stream;
+  Stream<CapturedImage> get captureStream => _captureController.stream;
 
   /// Initializes WebSocket event listeners for ML backend communication
   ///
@@ -1023,8 +1038,9 @@ class CameraService {
           await file.writeAsBytes(bytes);
 
           // Create XFile and emit through capture stream (same as React: setCroppedFile)
+          // Mark as automatic since this is from ML backend's best_image
           final xFile = XFile(filePath);
-          _captureController.add(xFile);
+          _captureController.add(CapturedImage(file: xFile, isAutomatic: true));
 
           // developer.log(
           //   'Complete: Best image saved as $extension (${bytes.length} bytes, mime: $mimeType)',
@@ -1241,7 +1257,7 @@ class CameraService {
         );
         // Fallback: emit to capture stream for in-app preview
         final xFile = XFile(savePath);
-        _captureController.add(xFile);
+        _captureController.add(CapturedImage(file: xFile, isAutomatic: false));
         developer.log('🐛 DEBUG: Fallback - emitted to capture stream');
       }
     } catch (e) {
@@ -1688,7 +1704,10 @@ class CameraService {
       );
 
       final croppedFile = XFile(croppedPath);
-      _captureController.add(croppedFile);
+      // Mark as manual capture (not automatic from ML backend)
+      _captureController.add(
+        CapturedImage(file: croppedFile, isAutomatic: false),
+      );
 
       // developer.log(
       //   'Manual capture completed with proper coordinate transformation',

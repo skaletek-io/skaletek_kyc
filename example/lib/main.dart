@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const Icon(Icons.verified_user, size: 80, color: Color(0xFF1261C1)),
             const SizedBox(height: 24),
             const Text(
-              'Skaletek KYC SDK Demo 2',
+              'Skaletek KYC SDK Demo',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),

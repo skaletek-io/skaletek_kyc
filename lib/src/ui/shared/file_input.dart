@@ -204,6 +204,15 @@ class FileInputState extends State<FileInput> {
     }
   }
 
+  /// Public method to set file without scanning (for already-processed images)
+  void setFile(ImageFile file) {
+    setState(() {
+      _selectedFile = file;
+      _errorMessage = null;
+    });
+    widget.onFileSelected?.call(file);
+  }
+
   /// Public method to set file and trigger scan/crop for PASSPORT
   Future<void> setFileAndScan(
     ImageFile file,

@@ -15,8 +15,10 @@
 /// ## Usage
 /// ```dart
 /// KYCCameraCapture(
-///   onCapture: (XFile file) {
+///   onCapture: (CapturedImage capturedImage) {
 ///     // Handle captured and cropped document image
+///     // capturedImage.file contains the XFile
+///     // capturedImage.isAutomatic indicates if ML backend captured it automatically
 ///   },
 ///   wsService: myWebSocketService, // Optional: provide existing service
 /// )
@@ -62,7 +64,7 @@ import 'package:skaletek_kyc/src/config/app_config.dart';
 ///
 /// ## Parameters
 /// - [onCapture]: Callback function called when an image is successfully captured
-///   and cropped. Receives an [XFile] containing the processed document image.
+///   and cropped. Receives a [CapturedImage] with the file and metadata about capture source.
 /// - [wsService]: Optional WebSocket service instance. If not provided, the widget
 ///   will create and manage its own service instance.
 /// - [environment]: Environment string for WebSocket URL ('dev', 'prod', 'sandbox').
@@ -78,7 +80,7 @@ import 'package:skaletek_kyc/src/config/app_config.dart';
 /// - Handles app lifecycle changes for optimal battery usage
 class KYCCameraCapture extends StatefulWidget {
   /// Callback function invoked when a document image is successfully captured and processed
-  final void Function(XFile file)? onCapture;
+  final void Function(CapturedImage capturedImage)? onCapture;
 
   /// Optional WebSocket service for ML backend communication
   /// If null, the widget creates and manages its own service instance
@@ -279,11 +281,11 @@ class _KYCCameraCaptureState extends State<KYCCameraCapture>
     });
 
     // Listen to capture stream
-    _cameraService!.captureStream.listen((file) {
+    _cameraService!.captureStream.listen((capturedImage) {
       if (mounted && _isActive) {
         // Stop processing any further updates after capture
         _isActive = false;
-        widget.onCapture?.call(file);
+        widget.onCapture?.call(capturedImage);
       }
     });
 
