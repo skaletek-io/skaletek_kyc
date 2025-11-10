@@ -557,6 +557,8 @@ class CameraService {
 
   final int _totalImageToSend = 3;
 
+  // int _debugImageCounter = 0;
+
   /// Flag indicating if the service has been disposed
   bool _disposed = false;
 
@@ -1378,15 +1380,28 @@ class CameraService {
           }
         }
       } else if (image.format.group == ImageFormatGroup.bgra8888) {
-        // Handle BGRA format
+        // Handle BGRA format (iOS) - need to swap B and R channels for correct colors
+        final width = image.width;
+        final height = image.height;
         final plane = image.planes[0];
-        imgImage = img.Image.fromBytes(
-          width: image.width,
-          height: image.height,
-          bytes: plane.bytes.buffer,
-          format: img.Format.uint8,
-          numChannels: 4,
-        );
+        final bytes = plane.bytes;
+
+        imgImage = img.Image(width: width, height: height);
+
+        // BGRA format: each pixel is 4 bytes [Blue, Green, Red, Alpha]
+        // We need to convert to RGB format
+        for (int y = 0; y < height; y++) {
+          for (int x = 0; x < width; x++) {
+            final pixelIndex = (y * width + x) * 4;
+            final b = bytes[pixelIndex]; // Blue
+            final g = bytes[pixelIndex + 1]; // Green
+            final r = bytes[pixelIndex + 2]; // Red
+            final a = bytes[pixelIndex + 3]; // Alpha
+
+            // Set pixel with correct RGB order
+            imgImage.setPixelRgba(x, y, r, g, b, a);
+          }
+        }
       } else {
         throw Exception('Unsupported image format: ${image.format}');
       }
@@ -1399,8 +1414,10 @@ class CameraService {
       }
 
       // Fix orientation: Rotate 90 degrees clockwise for portrait mode
-      // Android cameras in portrait typically need this rotation
-      imgImage = img.copyRotate(imgImage, angle: 90);
+      // Only needed for YUV420 format (Android) - iOS BGRA8888 is already correctly oriented
+      if (image.format.group == ImageFormatGroup.yuv420) {
+        imgImage = img.copyRotate(imgImage, angle: 90);
+      }
 
       // Encode as JPEG with current quality setting
       final jpegQuality = (_currentImageQuality * 100).round();

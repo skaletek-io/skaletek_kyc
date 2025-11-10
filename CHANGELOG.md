@@ -1,3 +1,7 @@
+## 0.0.11
+
+**iOS & Android Platform Improvements** - Critical fixes for iOS image processing and Android build configuration.
+
 ## 0.0.10
 
 **Bug Fix Release** - Critical fixes for camera blank screen, image quality (grayscale/rotation), and performance monitoring.
