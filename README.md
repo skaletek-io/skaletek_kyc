@@ -20,7 +20,7 @@ Add the dependency to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  skaletek_kyc: ^0.0.10
+  skaletek_kyc: ^0.0.11
 ```
 
 Run:
@@ -42,7 +42,7 @@ Android setup includes automated AWS Amplify configuration and ProGuard rules ma
 ```gradle
 buildscript {
     extra.apply {
-        set("kotlin_version", "2.0.0")
+        set("kotlin_version", "2.1.0")
         set("compose_version", "1.6.7")
         set("compose_compiler_version", "1.5.14")
     }
@@ -54,7 +54,7 @@ buildscript {
     }
     
     dependencies {
-        classpath("com.android.tools.build:gradle:8.3.2")
+        classpath("com.android.tools.build:gradle:8.9.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
         classpath("org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.0.0")
     }
@@ -81,7 +81,7 @@ plugins {
 }
 
 android {
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "27.0.12077973" //this is required by our sdk
 
     buildFeatures {
